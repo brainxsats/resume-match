@@ -1,0 +1,108 @@
+2025-04-07 09:35:31,421 - uvicorn.error - INFO - Started server process [1]
+2025-04-07 09:35:31,422 - uvicorn.error - INFO - Waiting for application startup.
+2025-04-07 09:35:31,423 - uvicorn.error - INFO - Application startup complete.
+2025-04-07 09:35:31,424 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+2025-04-07 09:35:34,532 - resume-analyzer - INFO - 访问首页
+2025-04-07 09:35:34,535 - resume-analyzer - INFO - API请求: {"timestamp": "2025-04-07T09:35:34.535107", "method": "GET", "url": "http://localhost:8000/", "client_ip": "172.23.0.1", "status_code": 200, "process_time_ms": 3.0}
+2025-04-07 09:35:40,931 - resume-analyzer - INFO - 开始Dify分析 - 简历长度: 12字符, 职位描述长度: 7字符
+2025-04-07 09:35:40,935 - resume-analyzer - INFO - Dify分析完成
+2025-04-07 09:35:41,078 - resume-analyzer - ERROR - Dify API错误: Illegal header value b'Bearer '
+2025-04-07 09:37:55,681 - uvicorn.error - INFO - Shutting down
+2025-04-07 09:38:05,253 - resume-analyzer - ERROR - OpenAI API密钥未设置
+2025-04-07 09:38:34,134 - resume-analyzer - ERROR - OpenAI API密钥未设置
+2025-04-07 09:40:18,434 - resume-analyzer - INFO - 尝试加载配置文件: /app/config.env
+2025-04-07 09:40:18,438 - resume-analyzer - INFO - 配置文件加载完成
+2025-04-07 09:40:18,440 - resume-analyzer - INFO - OpenAI API密钥长度: 0
+2025-04-07 09:40:18,442 - resume-analyzer - INFO - Dify API密钥长度: 0
+2025-04-07 09:40:18,444 - resume-analyzer - ERROR - OpenAI API密钥未设置
+2025-04-07 09:41:11,415 - resume-analyzer - INFO - 尝试加载配置文件: /app/config.env
+2025-04-07 09:41:11,418 - resume-analyzer - INFO - 配置文件加载完成
+2025-04-07 09:41:11,418 - resume-analyzer - INFO - OpenAI API密钥长度: 0
+2025-04-07 09:41:11,419 - resume-analyzer - INFO - Dify API密钥长度: 0
+2025-04-07 09:41:11,420 - resume-analyzer - ERROR - OpenAI API密钥未设置
+2025-04-07 09:43:19,514 - resume-analyzer - INFO - 尝试加载配置文件: /app/config.env
+2025-04-07 09:43:19,517 - resume-analyzer - INFO - 成功加载配置文件: /app/config.env
+2025-04-07 09:43:19,518 - resume-analyzer - INFO - OpenAI API密钥长度: 73
+2025-04-07 09:43:19,519 - resume-analyzer - INFO - Dify API密钥长度: 28
+2025-04-07 09:43:19,522 - uvicorn.error - INFO - Started server process [1]
+2025-04-07 09:43:19,524 - uvicorn.error - INFO - Waiting for application startup.
+2025-04-07 09:43:19,525 - uvicorn.error - INFO - Application startup complete.
+2025-04-07 09:43:19,526 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+2025-04-07 09:44:19,739 - resume-analyzer - INFO - 访问首页
+2025-04-07 09:44:19,746 - resume-analyzer - INFO - API请求: {"timestamp": "2025-04-07T09:44:19.745936", "method": "GET", "url": "http://localhost:8000/", "client_ip": "172.25.0.1", "status_code": 200, "process_time_ms": 7.12}
+2025-04-07 09:44:25,915 - resume-analyzer - INFO - 开始Dify分析 - 简历长度: 7字符, 职位描述长度: 5字符
+2025-04-07 09:44:25,916 - resume-analyzer - INFO - Dify分析完成
+2025-04-07 09:44:25,952 - resume-analyzer - INFO - Dify API请求头: {"Authorization": "Bearer [已隐藏]", "Content-Type": "application/json"}
+2025-04-07 09:44:28,396 - httpx - INFO - HTTP Request: POST http://chat.bitboy.cc/v1/chat-messages "HTTP/1.1 200 OK"
+2025-04-07 09:45:26,263 - resume-analyzer - INFO - 开始Dify分析 - 简历长度: 5字符, 职位描述长度: 6字符
+2025-04-07 09:45:26,265 - resume-analyzer - INFO - Dify分析完成
+2025-04-07 09:45:26,298 - resume-analyzer - INFO - Dify API请求头: {"Authorization": "Bearer [已隐藏]", "Content-Type": "application/json"}
+2025-04-07 09:45:28,458 - httpx - INFO - HTTP Request: POST http://chat.bitboy.cc/v1/chat-messages "HTTP/1.1 200 OK"
+2025-04-07 09:46:30,629 - resume-analyzer - INFO - 访问首页
+2025-04-07 09:46:30,631 - resume-analyzer - INFO - API请求: {"timestamp": "2025-04-07T09:46:30.631589", "method": "GET", "url": "http://localhost:8000/", "client_ip": "172.25.0.1", "status_code": 200, "process_time_ms": 2.21}
+2025-04-07 09:46:30,646 - resume-analyzer - INFO - API请求: {"timestamp": "2025-04-07T09:44:25.958773", "method": "POST", "url": "http://localhost:8000/api/analyze-dify", "client_ip": "172.25.0.1", "status_code": 200, "process_time_ms": 43.23, "request_body": "[无法读取请求体]"}
+2025-04-07 09:46:36,921 - resume-analyzer - INFO - 开始Dify分析 - 简历长度: 6字符, 职位描述长度: 7字符
+2025-04-07 09:46:36,924 - resume-analyzer - INFO - Dify分析完成
+2025-04-07 09:46:36,957 - resume-analyzer - INFO - Dify API请求头: {"Authorization": "Bearer [已隐藏]", "Content-Type": "application/json"}
+2025-04-07 09:46:41,117 - httpx - INFO - HTTP Request: POST http://chat.bitboy.cc/v1/chat-messages "HTTP/1.1 200 OK"
+2025-04-07 09:48:42,928 - uvicorn.error - INFO - Shutting down
+2025-04-07 09:48:49,096 - resume-analyzer - INFO - 尝试加载配置文件: /app/config.env
+2025-04-07 09:48:49,097 - resume-analyzer - INFO - 找到配置文件: /app/config.env
+2025-04-07 09:48:49,099 - resume-analyzer - INFO - 成功加载配置文件: /app/config.env
+2025-04-07 09:48:49,100 - resume-analyzer - INFO - OpenAI API密钥长度: 73
+2025-04-07 09:48:49,101 - resume-analyzer - INFO - Dify API密钥长度: 28
+2025-04-07 09:48:49,104 - uvicorn.error - INFO - Started server process [1]
+2025-04-07 09:48:49,106 - uvicorn.error - INFO - Waiting for application startup.
+2025-04-07 09:48:49,108 - uvicorn.error - INFO - Application startup complete.
+2025-04-07 09:48:49,111 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+2025-04-07 09:48:59,680 - resume-analyzer - INFO - 访问首页
+2025-04-07 09:48:59,684 - resume-analyzer - INFO - API请求: {"timestamp": "2025-04-07T09:48:59.683906", "method": "GET", "url": "http://localhost:8000/", "client_ip": "172.26.0.1", "status_code": 200, "process_time_ms": 3.36}
+2025-04-07 09:49:05,684 - resume-analyzer - INFO - 开始Dify分析 - 简历长度: 10字符, 职位描述长度: 8字符
+2025-04-07 09:49:05,685 - resume-analyzer - INFO - Dify分析完成
+2025-04-07 09:49:05,729 - resume-analyzer - INFO - Dify API请求头: {"Authorization": "Bearer [已隐藏]", "Content-Type": "application/json"}
+2025-04-07 09:49:08,246 - httpx - INFO - HTTP Request: POST http://chat.bitboy.cc/v1/chat-messages "HTTP/1.1 200 OK"
+2025-04-07 09:50:35,502 - uvicorn.error - INFO - Shutting down
+2025-04-07 09:50:42,357 - resume-analyzer - INFO - 尝试加载配置文件: /app/config.env
+2025-04-07 09:50:42,357 - resume-analyzer - INFO - 找到配置文件: /app/config.env
+2025-04-07 09:50:42,360 - resume-analyzer - INFO - 成功加载配置文件: /app/config.env
+2025-04-07 09:50:42,360 - resume-analyzer - INFO - OpenAI API密钥长度: 73
+2025-04-07 09:50:42,361 - resume-analyzer - INFO - Dify API密钥长度: 28
+2025-04-07 09:50:42,365 - uvicorn.error - INFO - Started server process [1]
+2025-04-07 09:50:42,366 - uvicorn.error - INFO - Waiting for application startup.
+2025-04-07 09:50:42,367 - uvicorn.error - INFO - Application startup complete.
+2025-04-07 09:50:42,369 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+2025-04-07 09:50:44,018 - resume-analyzer - INFO - 访问首页
+2025-04-07 09:50:44,021 - resume-analyzer - INFO - API请求: {"timestamp": "2025-04-07T09:50:44.021589", "method": "GET", "url": "http://localhost:8000/", "client_ip": "172.27.0.1", "status_code": 200, "process_time_ms": 3.38}
+2025-04-07 09:50:50,160 - resume-analyzer - INFO - 开始Dify分析 - 简历长度: 5字符, 职位描述长度: 6字符
+2025-04-07 09:50:50,164 - resume-analyzer - INFO - Dify分析完成
+2025-04-07 09:50:50,204 - resume-analyzer - INFO - Dify API请求头: {"Authorization": "Bearer [已隐藏]", "Content-Type": "application/json"}
+2025-04-07 09:50:53,226 - httpx - INFO - HTTP Request: POST http://chat.bitboy.cc/v1/chat-messages "HTTP/1.1 200 OK"
+2025-04-07 09:52:09,016 - resume-analyzer - INFO - 开始Dify分析 - 简历长度: 5字符, 职位描述长度: 6字符
+2025-04-07 09:52:09,017 - resume-analyzer - INFO - Dify分析完成
+2025-04-07 09:52:09,048 - resume-analyzer - INFO - Dify API请求头: {"Authorization": "Bearer [已隐藏]", "Content-Type": "application/json"}
+2025-04-07 09:52:11,504 - httpx - INFO - HTTP Request: POST http://chat.bitboy.cc/v1/chat-messages "HTTP/1.1 200 OK"
+2025-04-07 09:56:05,316 - uvicorn.error - INFO - Shutting down
+2025-04-07 09:56:19,417 - resume-analyzer - INFO - 尝试加载配置文件: /app/config.env
+2025-04-07 09:56:19,418 - resume-analyzer - INFO - 找到配置文件: /app/config.env
+2025-04-07 09:56:19,420 - resume-analyzer - INFO - 成功加载配置文件: /app/config.env
+2025-04-07 09:56:19,422 - resume-analyzer - INFO - OpenAI API密钥长度: 73
+2025-04-07 09:56:19,423 - resume-analyzer - INFO - Dify API密钥长度: 28
+2025-04-07 09:56:19,428 - uvicorn.error - INFO - Started server process [1]
+2025-04-07 09:56:19,429 - uvicorn.error - INFO - Waiting for application startup.
+2025-04-07 09:56:19,431 - uvicorn.error - INFO - Application startup complete.
+2025-04-07 09:56:19,432 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+2025-04-07 09:56:25,275 - resume-analyzer - INFO - 访问首页
+2025-04-07 09:56:25,289 - resume-analyzer - INFO - API请求: {"timestamp": "2025-04-07T09:56:25.289407", "method": "GET", "url": "http://localhost:8000/", "client_ip": "172.27.0.1", "status_code": 200, "process_time_ms": 13.93}
+2025-04-07 09:56:30,724 - resume-analyzer - INFO - 开始Dify分析 - 简历长度: 5字符, 职位描述长度: 7字符
+2025-04-07 09:56:30,726 - resume-analyzer - INFO - Dify分析完成
+2025-04-07 09:56:30,773 - resume-analyzer - INFO - Dify API请求头: {"Authorization": "Bearer [已隐藏]", "Content-Type": "application/json"}
+2025-04-07 09:56:33,228 - httpx - INFO - HTTP Request: POST http://chat.bitboy.cc/v1/chat-messages "HTTP/1.1 200 OK"
+2025-04-07 09:56:56,324 - resume-analyzer - INFO - 开始Dify分析 - 简历长度: 5字符, 职位描述长度: 7字符
+2025-04-07 09:56:56,325 - resume-analyzer - INFO - Dify分析完成
+2025-04-07 09:56:56,361 - resume-analyzer - INFO - Dify API请求头: {"Authorization": "Bearer [已隐藏]", "Content-Type": "application/json"}
+2025-04-07 09:56:58,652 - httpx - INFO - HTTP Request: POST http://chat.bitboy.cc/v1/chat-messages "HTTP/1.1 200 OK"
+2025-04-07 09:58:32,270 - resume-analyzer - INFO - 开始Dify分析 - 简历长度: 10字符, 职位描述长度: 29字符
+2025-04-07 09:58:32,275 - resume-analyzer - INFO - Dify分析完成
+2025-04-07 09:58:32,321 - resume-analyzer - INFO - Dify API请求头: {"Authorization": "Bearer [已隐藏]", "Content-Type": "application/json"}
+2025-04-07 09:58:34,732 - httpx - INFO - HTTP Request: POST http://chat.bitboy.cc/v1/chat-messages "HTTP/1.1 200 OK"
+2025-04-07 09:59:08,829 - uvicorn.error - INFO - Shutting down

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简历职位匹配分析</title>
+    <!-- 添加 Marked.js 库 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- 添加 highlight.js 库和样式 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/github.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/lib/highlight.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            display: none;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .radio-group {
+            margin-bottom: 15px;
+        }
+        .radio-group label {
+            display: inline-block;
+            margin-right: 15px;
+            font-weight: normal;
+        }
+        /* Markdown 样式 */
+        .markdown-body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            word-wrap: break-word;
+        }
+        .markdown-body h1,
+        .markdown-body h2,
+        .markdown-body h3,
+        .markdown-body h4,
+        .markdown-body h5,
+        .markdown-body h6 {
+            margin-top: 24px;
+            margin-bottom: 16px;
+            font-weight: 600;
+            line-height: 1.25;
+        }
+        .markdown-body h1 {
+            font-size: 2em;
+            border-bottom: 1px solid #eaecef;
+            padding-bottom: 0.3em;
+        }
+        .markdown-body h2 {
+            font-size: 1.5em;
+            border-bottom: 1px solid #eaecef;
+            padding-bottom: 0.3em;
+        }
+        .markdown-body h3 {
+            font-size: 1.25em;
+        }
+        .markdown-body p {
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+        .markdown-body ul,
+        .markdown-body ol {
+            padding-left: 2em;
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+        .markdown-body li {
+            margin-top: 0.25em;
+        }
+        .markdown-body code {
+            padding: 0.2em 0.4em;
+            margin: 0;
+            font-size: 85%;
+            background-color: rgba(27, 31, 35, 0.05);
+            border-radius: 3px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        }
+        .markdown-body pre {
+            padding: 16px;
+            overflow: auto;
+            font-size: 85%;
+            line-height: 1.45;
+            background-color: #f6f8fa;
+            border-radius: 3px;
+        }
+        .markdown-body pre code {
+            padding: 0;
+            margin: 0;
+            font-size: 100%;
+            word-break: normal;
+            white-space: pre;
+            background: transparent;
+            border: 0;
+        }
+        .markdown-body blockquote {
+            padding: 0 1em;
+            color: #6a737d;
+            border-left: 0.25em solid #dfe2e5;
+            margin: 0 0 16px 0;
+        }
+        .markdown-body table {
+            display: block;
+            width: 100%;
+            overflow: auto;
+            margin-top: 0;
+            margin-bottom: 16px;
+            border-spacing: 0;
+            border-collapse: collapse;
+        }
+        .markdown-body table th {
+            font-weight: 600;
+        }
+        .markdown-body table th,
+        .markdown-body table td {
+            padding: 6px 13px;
+            border: 1px solid #dfe2e5;
+        }
+        .markdown-body table tr {
+            background-color: #fff;
+            border-top: 1px solid #c6cbd1;
+        }
+        .markdown-body table tr:nth-child(2n) {
+            background-color: #f6f8fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>简历职位匹配分析</h1>
+        <form id="analysisForm">
+            <div class="form-group">
+                <label for="resume">简历内容：</label>
+                <textarea id="resume" name="resume" required placeholder="请输入简历内容..."></textarea>
+            </div>
+            <div class="form-group">
+                <label for="job">职位描述：</label>
+                <textarea id="job" name="job" required placeholder="请输入职位描述..."></textarea>
+            </div>
+            <!-- <div class="radio-group">
+                <label>分析方式：</label>
+                <label>
+                    <input type="radio" name="analyzer" value="openai" checked> OpenAI
+                </label>
+                <label>
+                    <input type="radio" name="analyzer" value="dify"> Dify
+                </label>
+            </div> -->
+            <button type="submit">开始分析</button>
+        </form>
+        <div class="loading" id="loading">分析中，请稍候...</div>
+        <div id="result" class="markdown-body"></div>
+    </div>
+
+    <script>
+        // 配置 marked 选项
+        marked.setOptions({
+            highlight: function(code, lang) {
+                if (lang && hljs.getLanguage(lang)) {
+                    return hljs.highlight(code, { language: lang }).value;
+                }
+                return hljs.highlightAuto(code).value;
+            },
+            breaks: true,
+            gfm: true
+        });
+
+        document.getElementById('analysisForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const resume = document.getElementById('resume').value;
+            const job = document.getElementById('job').value;
+            const analyzer = 'dify';
+            // const analyzer = document.querySelector('input[name="analyzer"]:checked').value;
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+
+            // 显示加载状态
+            loading.style.display = 'block';
+            result.style.display = 'block';
+            result.innerHTML = '';
+
+            try {
+                const endpoint = analyzer === 'openai' ? '/api/analyze' : '/api/analyze-dify';
+                const response = await fetch("http://localhost:8000" + endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        resume: resume,
+                        job: job
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('分析请求失败');
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let markdownContent = '';
+
+                while (true) {
+                    const {value, done} = await reader.read();
+                    if (done) break;
+                    
+                    const text = decoder.decode(value);
+                    const lines = text.split('\n');
+                    
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(line.slice(6));
+                                if (data.content) {
+                                    markdownContent += data.content;
+                                    result.innerHTML = marked.parse(markdownContent);
+                                }
+                                if (data.error) {
+                                    throw new Error(data.error);
+                                }
+                            } catch (e) {
+                                console.error('解析响应数据失败:', e);
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                result.innerHTML = `
+                    <h2>错误</h2>
+                    <div style="color: red;">分析过程中出现错误：${error.message}</div>
+                `;
+            } finally {
+                loading.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html> 
