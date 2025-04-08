@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简历分析报告</title>
+    <!-- 添加 Marked.js 库 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- 添加 highlight.js 库和样式 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/github.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/lib/highlight.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eaecef;
+        }
+        .header h1 {
+            margin: 0;
+            color: #24292e;
+        }
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        .btn-primary {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #45a049;
+        }
+        .btn-secondary {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        .btn-secondary:hover {
+            background-color: #e0e0e0;
+        }
+        /* Markdown 样式 */
+        .markdown-body {
+            font-size: 16px;
+            line-height: 1.6;
+            word-wrap: break-word;
+        }
+        .markdown-body h1,
+        .markdown-body h2,
+        .markdown-body h3,
+        .markdown-body h4,
+        .markdown-body h5,
+        .markdown-body h6 {
+            margin-top: 24px;
+            margin-bottom: 16px;
+            font-weight: 600;
+            line-height: 1.25;
+        }
+        .markdown-body h1 {
+            font-size: 2em;
+            border-bottom: 1px solid #eaecef;
+            padding-bottom: 0.3em;
+        }
+        .markdown-body h2 {
+            font-size: 1.5em;
+            border-bottom: 1px solid #eaecef;
+            padding-bottom: 0.3em;
+        }
+        .markdown-body h3 {
+            font-size: 1.25em;
+        }
+        .markdown-body p {
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+        .markdown-body ul,
+        .markdown-body ol {
+            padding-left: 2em;
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+        .markdown-body li {
+            margin-top: 0.25em;
+        }
+        .markdown-body code {
+            padding: 0.2em 0.4em;
+            margin: 0;
+            font-size: 85%;
+            background-color: rgba(27, 31, 35, 0.05);
+            border-radius: 3px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        }
+        .markdown-body pre {
+            padding: 16px;
+            overflow: auto;
+            font-size: 85%;
+            line-height: 1.45;
+            background-color: #f6f8fa;
+            border-radius: 3px;
+        }
+        .markdown-body pre code {
+            padding: 0;
+            margin: 0;
+            font-size: 100%;
+            word-break: normal;
+            white-space: pre;
+            background: transparent;
+            border: 0;
+        }
+        .markdown-body blockquote {
+            padding: 0 1em;
+            color: #6a737d;
+            border-left: 0.25em solid #dfe2e5;
+            margin: 0 0 16px 0;
+        }
+        .markdown-body table {
+            display: block;
+            width: 100%;
+            overflow: auto;
+            margin-top: 0;
+            margin-bottom: 16px;
+            border-spacing: 0;
+            border-collapse: collapse;
+        }
+        .markdown-body table th {
+            font-weight: 600;
+        }
+        .markdown-body table th,
+        .markdown-body table td {
+            padding: 6px 13px;
+            border: 1px solid #dfe2e5;
+        }
+        .markdown-body table tr {
+            background-color: #fff;
+            border-top: 1px solid #c6cbd1;
+        }
+        .markdown-body table tr:nth-child(2n) {
+            background-color: #f6f8fa;
+        }
+        @media print {
+            body {
+                background-color: white;
+            }
+            .container {
+                box-shadow: none;
+            }
+            .actions {
+                display: none;
+            }
+        }
+        .error-message {
+            color: red;
+            padding: 15px;
+            border: 1px solid #ffcdd2;
+            background-color: #ffebee;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- <div class="header">
+            <h1>简历分析报告</h1>
+            <div class="actions">
+                <button class="btn btn-secondary" onclick="window.location.href='index.html'">返回</button>
+                <button class="btn btn-primary" onclick="window.print()">打印报告</button>
+            </div> -->
+        <!-- </div> -->
+        <div id="report" class="markdown-body"></div>
+    </div>
+
+    <script>
+        // 配置 marked 选项
+        marked.setOptions({
+            highlight: function(code, lang) {
+                if (lang && hljs.getLanguage(lang)) {
+                    return hljs.highlight(code, { language: lang }).value;
+                }
+                return hljs.highlightAuto(code).value;
+            },
+            breaks: true,
+            gfm: true
+        });
+
+        // 从 localStorage 获取报告内容
+        function getReportContent() {
+            try {
+                const reportContent = localStorage.getItem('reportContent');
+                
+                if (!reportContent) {
+                    throw new Error('未找到报告内容');
+                }
+                
+                if (reportContent.trim() === '') {
+                    throw new Error('报告内容为空');
+                }
+                
+                return reportContent;
+            } catch (error) {
+                console.error('获取报告内容失败:', error);
+                return null;
+            }
+        }
+
+        // 显示报告内容
+        function displayReport() {
+            const reportElement = document.getElementById('report');
+            const content = getReportContent();
+            
+            if (content) {
+                try {
+                    // 使用 marked 解析 Markdown 内容
+                    const htmlContent = marked.parse(content);
+                    reportElement.innerHTML = htmlContent;
+                    
+                    // 应用代码高亮
+                    document.querySelectorAll('pre code').forEach((block) => {
+                        hljs.highlightBlock(block);
+                    });
+                } catch (error) {
+                    console.error('解析 Markdown 内容失败:', error);
+                    reportElement.innerHTML = `
+                        <div class="error-message">
+                            <h3>解析报告内容失败</h3>
+                            <p>错误信息: ${error.message}</p>
+                        </div>
+                    `;
+                }
+            } else {
+                reportElement.innerHTML = `
+                    <div class="error-message">
+                        <h3>无法加载报告内容</h3>
+                        <p>请确保您是从分析页面跳转过来的，或者报告内容已正确保存。</p>
+                        <p>您可以点击"返回"按钮回到分析页面重新生成报告。</p>
+                    </div>
+                `;
+            }
+        }
+
+        // 页面加载完成后显示报告
+        document.addEventListener('DOMContentLoaded', displayReport);
+    </script>
+</body>
+</html> 

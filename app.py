@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException, UploadFile, File
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 import openai
@@ -8,6 +8,8 @@ from typing import Dict
 import httpx
 import asyncio
 from dotenv import load_dotenv
+from PyPDF2 import PdfReader
+import io
 
 # 加载配置文件
 load_dotenv('config.env')
@@ -38,26 +40,14 @@ async def analyze_resume(request: Request):
         job = data.get("job", "")
 
         # 构建提示词
-        prompt = f"""请分析以下简历与职位描述的匹配度，并给出详细的分析报告。请使用Markdown格式输出，包括标题、列表、加粗等格式：
+        prompt = f"""请分析以下简历与职位描述的匹配度，并给出详细的分析报告。
 
 职位描述：
 {job}
 
 简历内容：
 {resume}
-
-请从以下几个方面进行分析，并使用Markdown格式：
-1. 技能匹配度
-2. 经验匹配度
-3. 教育背景匹配度
-4. 建议改进的地方
-
-请确保输出是Markdown格式，可以使用以下格式：
-- 使用 # 作为标题
-- 使用 - 或 * 作为列表项
-- 使用 **文本** 作为加粗
-- 使用 > 作为引用
-- 使用 ``` 作为代码块
+根据以上信息，进行深入的分析直接输出报告不要对话
 """
 
         async def generate_response():
@@ -148,6 +138,32 @@ async def analyze_resume_dify(request: Request):
 
     except Exception as e:
         return {"error": str(e)}
+
+@app.post("/api/extract-pdf")
+async def extract_pdf(file: UploadFile = File(...)):
+    try:
+        # 读取上传的PDF文件
+        contents = await file.read()
+        pdf_file = io.BytesIO(contents)
+        
+        # 使用PyPDF2读取PDF内容
+        pdf_reader = PdfReader(pdf_file)
+        text_content = ""
+        
+        # 提取所有页面的文本
+        for page in pdf_reader.pages:
+            text_content += page.extract_text() + "\n"
+        
+        # 清理文本内容
+        text_content = text_content.strip()
+        
+        if not text_content:
+            raise HTTPException(status_code=400, detail="无法从PDF文件中提取文本内容")
+        
+        return {"content": text_content}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"处理PDF文件时出错: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
