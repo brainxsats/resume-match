@@ -85,7 +85,7 @@ async def analyze_resume_dify(request: Request):
         job = data.get("job", "")
 
         # 构建提示词
-        prompt = f"""请分析以下简历与职位描述的匹配度，并给出详细的分析报告。
+        prompt = f"""请分析以下简历与职位，并给出详细的匹配度分析报告。
 
 职位描述：
 {job}

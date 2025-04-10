@@ -236,6 +236,105 @@
             font-weight: normal;
             color: #666;
         }
+        /* 添加报告相关样式 */
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eaecef;
+        }
+        .report-header h1 {
+            margin: 0;
+            color: #24292e;
+        }
+        .report-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        .btn-primary {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #45a049;
+        }
+        .btn-secondary {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        .btn-secondary:hover {
+            background-color: #e0e0e0;
+        }
+        @media print {
+            .report-actions {
+                display: none;
+            }
+            .container {
+                box-shadow: none;
+            }
+        }
+        /* 添加打字机效果和动画相关样式 */
+        .typing-effect {
+            display: inline-block;
+            overflow: hidden;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .smooth-scroll {
+            scroll-behavior: smooth;
+        }
+        #reportContent {
+            min-height: 200px;
+            transition: all 0.3s ease;
+            width: 100%;
+            display: block;
+        }
+        .content-block {
+            opacity: 0;
+            transform: translateY(10px);
+            animation: slideIn 0.3s ease forwards;
+        }
+        @keyframes slideIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        /* 添加流式输出相关样式 */
+        .stream-content {
+            opacity: 0;
+            transform: translateY(10px);
+            animation: streamIn 0.2s ease forwards;
+            width: 100%;
+        }
+        @keyframes streamIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .stream-block {
+            margin-bottom: 8px;
+            width: 100%;
+            display: inline-block;
+        }
     </style>
 </head>
 <body>
@@ -295,7 +394,16 @@ def hello():
             <div class="spinner"></div>
             <div class="loading-text">正在分析中，请稍候...</div>
         </div>
-        <div id="result" class="markdown-body"></div>
+        <div id="result" class="markdown-body" style="display: none;">
+            <div class="report-header">
+                <h1>简历分析报告</h1>
+                <div class="report-actions">
+                    <button class="btn btn-secondary" onclick="resetForm()">重新分析</button>
+                    <button class="btn btn-primary" onclick="window.print()">打印报告</button>
+                </div>
+            </div>
+            <div id="reportContent"></div>
+        </div>
     </div>
 
     <script>
@@ -314,6 +422,122 @@ def hello():
             breaks: true,
             gfm: true
         });
+
+        // 处理流式内容
+        function processStreamContent(content) {
+            // 按完整段落分割内容
+            const segments = [];
+            let currentSegment = '';
+            const lines = content.split('\n');
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                
+                // 如果是标题，作为独立段落
+                if (line.match(/^#{1,6}\s/)) {
+                    if (currentSegment.trim()) {
+                        segments.push(currentSegment.trim());
+                    }
+                    segments.push(line);
+                    currentSegment = '';
+                }
+                // 如果是列表项
+                else if (line.match(/^[-*+]\s/) || line.match(/^\d+\.\s/)) {
+                    // 如果前面有非列表内容，先添加为独立段落
+                    if (currentSegment.trim() && !currentSegment.match(/(?:^|\n)[-*+]\s/) && !currentSegment.match(/(?:^|\n)\d+\.\s/)) {
+                        segments.push(currentSegment.trim());
+                        currentSegment = '';
+                    }
+                    // 将列表项添加到当前段落
+                    currentSegment += (currentSegment ? '\n' : '') + line;
+                }
+                // 如果是空行
+                else if (!line.trim()) {
+                    if (currentSegment.trim()) {
+                        segments.push(currentSegment.trim());
+                        currentSegment = '';
+                    }
+                }
+                // 其他情况，添加到当前段落
+                else {
+                    currentSegment += (currentSegment ? '\n' : '') + line;
+                }
+            }
+            
+            // 添加最后一个段落
+            if (currentSegment.trim()) {
+                segments.push(currentSegment.trim());
+            }
+            
+            return segments;
+        }
+
+        // 创建流式内容块
+        function createStreamBlock(content) {
+            const block = document.createElement('div');
+            block.className = 'stream-block stream-content';
+            
+            // 检查内容类型并添加适当的样式
+            if (content.startsWith('<h')) {
+                block.style.display = 'block';
+            } else if (content.startsWith('<ul') || content.startsWith('<ol')) {
+                block.style.display = 'block';
+            } else if (content.startsWith('<pre')) {
+                block.style.display = 'block';
+            } else if (content.startsWith('<blockquote')) {
+                block.style.display = 'block';
+            } else if (content.startsWith('<table')) {
+                block.style.display = 'block';
+            } else {
+                block.style.display = 'block';
+            }
+            
+            block.innerHTML = content;
+            return block;
+        }
+
+        // 平滑滚动到元素
+        function smoothScrollToElement(element) {
+            const container = document.querySelector('.container');
+            const elementTop = element.offsetTop;
+            const containerTop = container.scrollTop;
+            const targetScroll = elementTop - containerTop - 100;
+
+            container.scrollTo({
+                top: targetScroll,
+                behavior: 'smooth'
+            });
+        }
+
+        // 延迟显示内容
+        async function displayContentWithDelay(content, container) {
+            const segments = processStreamContent(content);
+            for (const segment of segments) {
+                if (segment.trim()) {
+                    const htmlContent = marked.parse(segment);
+                    const block = createStreamBlock(htmlContent);
+                    container.appendChild(block);
+                    
+                    // 应用代码高亮
+                    block.querySelectorAll('pre code').forEach((codeBlock) => {
+                        hljs.highlightBlock(codeBlock);
+                    });
+
+                    // 平滑滚动到新内容
+                    smoothScrollToElement(block);
+                    
+                    // 添加延迟，使内容逐步显示
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+            }
+        }
+
+        // 重置表单
+        function resetForm() {
+            document.getElementById('analysisForm').reset();
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('reportContent').innerHTML = '';
+        }
 
         // 显示/隐藏 Markdown 格式说明
         document.getElementById('togglePreview').addEventListener('click', function() {
@@ -336,11 +560,12 @@ def hello():
             const pdfFile = document.getElementById('pdfFile').files[0];
             const loading = document.getElementById('loading');
             const result = document.getElementById('result');
+            const reportContent = document.getElementById('reportContent');
 
             // 显示加载状态
             loading.style.display = 'block';
-            result.style.display = 'block';
-            result.innerHTML = '';
+            result.style.display = 'none';
+            reportContent.innerHTML = '';
 
             try {
                 let resumeContent = resume;
@@ -384,9 +609,15 @@ def hello():
                     throw new Error('分析请求失败');
                 }
 
+                // 显示结果容器，确保markdown-body类在正确的容器上
+                result.style.display = 'block';
+                loading.style.display = 'none';
+                reportContent.className = 'markdown-body';  // 确保reportContent有markdown-body类
+
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
                 let markdownContent = '';
+                let lastContent = '';
 
                 while (true) {
                     const {value, done} = await reader.read();
@@ -401,7 +632,14 @@ def hello():
                                 const data = JSON.parse(line.slice(6));
                                 if (data.content) {
                                     markdownContent += data.content;
-                                    result.innerHTML = marked.parse(markdownContent);
+                                    
+                                    // 获取新增的内容
+                                    const newContent = markdownContent.slice(lastContent.length);
+                                    if (newContent.trim()) {
+                                        // 使用新的显示函数处理内容
+                                        await displayContentWithDelay(newContent, reportContent);
+                                        lastContent = markdownContent;
+                                    }
                                 }
                                 if (data.error) {
                                     throw new Error(data.error);
@@ -413,19 +651,17 @@ def hello():
                     }
                 }
 
-                // 分析完成后，将内容存储到localStorage并跳转到报告页面
-                if (markdownContent && markdownContent.trim() !== '') {
-                    // 存储报告内容
-                    localStorage.setItem('reportContent', markdownContent);
-                    // 跳转到报告页面
-                    window.location.href = 'report.html';
-                } else {
+                if (!markdownContent || markdownContent.trim() === '') {
                     throw new Error('分析结果为空，请重试');
                 }
+
             } catch (error) {
-                result.innerHTML = `
-                    <h2>错误</h2>
-                    <div style="color: red;">分析过程中出现错误：${error.message}</div>
+                result.style.display = 'block';
+                reportContent.innerHTML = `
+                    <div class="error-message fade-in">
+                        <h2>错误</h2>
+                        <div style="color: red;">分析过程中出现错误：${error.message}</div>
+                    </div>
                 `;
             } finally {
                 loading.style.display = 'none';
