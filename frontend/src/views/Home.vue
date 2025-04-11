@@ -12,7 +12,30 @@
               <label class="block text-sm font-medium text-gray-300 mb-2">
                 简历内容
               </label>
+              <!-- PDF 预览区域 -->
+              <div v-if="pdfPreviewUrl" class="mb-4">
+                <div class="relative w-full h-[600px] bg-gray-700 rounded-lg overflow-hidden">
+                  <iframe
+                    :src="pdfPreviewUrl"
+                    class="absolute inset-0 w-full h-full"
+                    frameborder="0"
+                  ></iframe>
+                </div>
+                <div class="mt-2 flex justify-end">
+                  <button
+                    @click="clearPdf"
+                    class="text-sm text-red-400 hover:text-red-300 flex items-center"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    清除 PDF
+                  </button>
+                </div>
+              </div>
+              <!-- 文本输入区域 -->
               <textarea
+                v-if="!pdfPreviewUrl"
                 v-model="formData.resume"
                 class="w-full h-[600px] p-4 bg-gray-700 text-gray-100 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500"
                 placeholder="请详细描述您的工作经历、项目经验、技能特长等。建议包含：
@@ -21,34 +44,25 @@
 2. 项目经验：项目名称、角色、技术栈、主要贡献
 3. 技能特长：专业技能、证书、语言能力等"
               />
-            </div>
-            <div class="border-t border-gray-700 pt-4">
-              <label class="block text-sm font-medium text-gray-300 mb-2">
-                上传PDF简历
-              </label>
-              <div 
-                class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-600 border-dashed rounded-lg hover:border-gray-500 transition-colors bg-gray-700 cursor-pointer"
-                @drop.prevent="handleFileDrop"
-                @dragover.prevent
-                @click="$refs.pdfFile.click()"
-              >
-                <div class="space-y-1 text-center">
-                  <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4-4m4-4h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                  </svg>
-                  <div class="flex text-sm text-gray-400 justify-center">
-                    <span class="text-blue-400 hover:text-blue-300">上传文件</span>
-                    <p class="pl-1">或拖拽文件到此处</p>
-                  </div>
-                  <input
-                    id="pdfFile"
-                    ref="pdfFile"
-                    type="file"
-                    accept=".pdf"
-                    class="hidden"
-                    @change="handleFileChange"
-                  />
-                  <p class="text-xs text-gray-500">仅支持 PDF 格式</p>
+              <!-- PDF 上传区域 -->
+              <div class="mt-4">
+                <div class="flex items-center justify-center w-full">
+                  <label class="flex flex-col w-full h-32 border-2 border-gray-600 border-dashed hover:bg-gray-800 hover:border-gray-500 rounded-lg cursor-pointer">
+                    <div class="flex flex-col items-center justify-center pt-7">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-gray-400 group-hover:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                      <p class="pt-1 text-sm tracking-wider text-gray-400 group-hover:text-gray-300">
+                        点击上传 PDF 简历或将文件拖放到这里
+                      </p>
+                    </div>
+                    <input 
+                      type="file" 
+                      class="opacity-0" 
+                      accept=".pdf"
+                      @change="handleFileUpload"
+                    />
+                  </label>
                 </div>
               </div>
             </div>
@@ -157,6 +171,7 @@ export default {
         job: ''
       },
       pdfFile: null,
+      pdfPreviewUrl: null,
       loading: false,
       showResult: false,
       markdownContent: '',
@@ -166,47 +181,25 @@ export default {
   },
 
   methods: {
-    handleFileChange(event) {
+    handleFileUpload(event) {
       const file = event.target.files[0]
-      if (!file) return
-      
-      // 检查文件类型
-      if (file.type !== 'application/pdf') {
+      if (file && file.type === 'application/pdf') {
+        this.pdfFile = file
+        // 创建预览 URL
+        this.pdfPreviewUrl = URL.createObjectURL(file)
+        // 清空文本输入
+        this.formData.resume = ''
+      } else {
         alert('请上传 PDF 格式的文件')
-        this.$refs.pdfFile.value = ''
-        return
       }
-      
-      // 检查文件大小（限制为 10MB）
-      const maxSize = 10 * 1024 * 1024 // 10MB
-      if (file.size > maxSize) {
-        alert('文件大小不能超过 10MB')
-        this.$refs.pdfFile.value = ''
-        return
-      }
-      
-      this.pdfFile = file
     },
 
-    handleFileDrop(event) {
-      const file = event.dataTransfer.files[0]
-      if (!file) return
-      
-      // 检查文件类型
-      if (file.type !== 'application/pdf') {
-        alert('请上传 PDF 格式的文件')
-        return
+    clearPdf() {
+      this.pdfFile = null
+      if (this.pdfPreviewUrl) {
+        URL.revokeObjectURL(this.pdfPreviewUrl)
+        this.pdfPreviewUrl = null
       }
-      
-      // 检查文件大小（限制为 10MB）
-      const maxSize = 10 * 1024 * 1024 // 10MB
-      if (file.size > maxSize) {
-        alert('文件大小不能超过 10MB')
-        return
-      }
-      
-      this.pdfFile = file
-      this.$refs.pdfFile.files = event.dataTransfer.files
     },
 
     resetForm() {
@@ -396,15 +389,16 @@ export default {
           formData.append('file', this.pdfFile)
           
           try {
-            const { data } = await this.$axios.post('/api/extract-pdf', formData, {
+            const response = await this.$axios.post('/api/extract-pdf', formData, {
               headers: {
                 'Content-Type': 'multipart/form-data'
-              },
-              timeout: 30000 // 30秒超时
+              }
             })
             
-            if (data && data.content) {
-              resumeContent = data.content
+            if (response.data && response.data.content) {
+              resumeContent = response.data.content
+              // 保存提取的文本内容
+              this.formData.resume = resumeContent
             } else {
               throw new Error('PDF解析结果为空')
             }

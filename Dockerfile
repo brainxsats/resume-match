@@ -6,12 +6,12 @@ WORKDIR /app
 
 # 复制依赖文件
 COPY requirements.txt .
-COPY config.env .
 
 # 安装依赖
 RUN pip install --no-cache-dir -r requirements.txt
 
 # 复制应用代码
+COPY config.env .
 COPY app.py .
 
 # 暴露端口

@@ -2,49 +2,17 @@
   <div class="min-h-screen bg-gray-900 py-8">
     <div class="container mx-auto px-4 max-w-7xl">
       <div class="flex justify-between items-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-100">分析报告</h1>
+        <h1 class="text-3xl font-bold text-gray-100">总结报告</h1>
         <button
-          @click="$router.push('/')"
+          @click="goBack"
           class="px-4 py-2 text-sm text-gray-300 border border-gray-600 rounded-md hover:bg-gray-800 transition-colors"
         >
-          返回首页
+          返回详细报告
         </button>
       </div>
       
       <div class="bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-700">
-        <div ref="reportContent" class="report-content"></div>
-      </div>
-
-      <!-- 添加获取总结报告按钮 -->
-      <div class="mt-4 flex justify-center">
-        <button
-          @click="fetchSummaryReport"
-          :disabled="isLoading"
-          class="px-4 py-2 text-sm text-gray-300 border border-gray-600 rounded-md hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <span v-if="isLoading" class="flex items-center">
-            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            正在生成总结报告...
-          </span>
-          <span v-else>获取总结报告</span>
-        </button>
-      </div>
-
-      <!-- 添加加载弹窗 -->
-      <div v-if="isLoading" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50">
-        <div class="bg-gray-800 p-8 rounded-lg shadow-xl border border-gray-700 max-w-md w-full mx-4">
-          <div class="flex flex-col items-center">
-            <svg class="animate-spin h-12 w-12 text-blue-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <h3 class="text-lg font-medium text-gray-100 mb-2">正在生成总结报告</h3>
-            <p class="text-gray-400 text-center">请稍候，我们正在为您生成一份简洁的总结报告...</p>
-          </div>
-        </div>
+        <div ref="summaryContent" class="report-content"></div>
       </div>
     </div>
   </div>
@@ -53,17 +21,14 @@
 <script>
 import { marked } from 'marked'
 import hljs from 'highlight.js'
-import axios from 'axios'
 
 export default {
-  name: 'Report',
+  name: 'Summary',
   
   data() {
     return {
       content: '',
-      isAnimating: false,
-      summaryContent: '',
-      isLoading: false
+      isAnimating: false
     }
   },
 
@@ -88,13 +53,13 @@ export default {
 
     // 从路由参数或缓存中获取报告内容
     let content = ''
-    if (this.$route.params.report) {
-      content = this.$route.params.report
+    if (this.$route.params.summary) {
+      content = this.$route.params.summary
       // 保存到 sessionStorage，这样返回时可以恢复
-      sessionStorage.setItem('reportContent', content)
+      sessionStorage.setItem('summaryContent', content)
     } else {
       // 如果没有路由参数，尝试从 sessionStorage 恢复
-      const cachedContent = sessionStorage.getItem('reportContent')
+      const cachedContent = sessionStorage.getItem('summaryContent')
       if (cachedContent) {
         content = cachedContent
       }
@@ -114,102 +79,30 @@ export default {
     }
   },
 
-  beforeDestroy() {
-    // 组件销毁前保存内容到 sessionStorage
-    if (this.content) {
-      sessionStorage.setItem('reportContent', this.content)
-    }
-  },
-
   mounted() {
     // 在 DOM 挂载完成后展示内容
     if (this.content) {
       this.$nextTick(() => {
-        // 如果是从缓存恢复的内容，直接显示
-        if (this.$route.params.report) {
-          this.animateContent() // 新内容使用动画展示
+        // 如果是新数据，使用动画展示
+        if (this.$route.params.isNew) {
+          this.animateContent()
         } else {
-          this.displayContent() // 缓存内容直接显示
+          this.displayContent() // 缓存数据直接显示
         }
       })
     }
   },
 
   methods: {
-    async fetchSummaryReport() {
-      try {
-        // 从 localStorage 获取数据
-        const formDataStr = localStorage.getItem('formData')
-        if (!formDataStr) {
-          throw new Error('缺少必要的简历或职位信息')
-        }
-        
-        const formData = JSON.parse(formDataStr)
-        const resume = formData.resume
-        const job = formData.job
-        
-        if (!resume || !job) {
-          throw new Error('缺少必要的简历或职位信息')
-        }
-
-        this.isLoading = true
-        const apiUrl = process.env.VUE_APP_API_BASE_URL || 'http://localhost:8000'
-        const response = await axios.post(`${apiUrl}/api/analyze-dify-summary`, {
-          resume: resume,
-          job: job,
-          report: this.content
-        }, {
-          responseType: 'text',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        })
-
-        if (response.status !== 200) {
-          throw new Error(`请求失败: ${response.status} ${response.statusText}`)
-        }
-
-        let content = ''
-        const lines = response.data.split('\n')
-        for (const line of lines) {
-          if (line.trim() && line.startsWith('data: ')) {
-            try {
-              const data = JSON.parse(line.slice(6))
-              if (data.content) {
-                content += data.content
-              }
-            } catch (e) {
-              console.error('解析响应数据失败:', e)
-            }
-          }
-        }
-
-        if (content) {
-          // 保存到 sessionStorage，这样返回时可以恢复
-          sessionStorage.setItem('summaryContent', content)
-          // 跳转到新页面展示总结报告，标记为新数据
-          this.$router.push({
-            name: 'summary',
-            params: { 
-              summary: content,
-              isNew: true
-            }
-          })
-        } else {
-          throw new Error('获取总结报告失败：返回内容为空')
-        }
-      } catch (error) {
-        console.error('获取总结报告出错:', error)
-        alert('获取总结报告出错：' + (error.response?.data?.message || error.message))
-      } finally {
-        this.isLoading = false
-      }
+    goBack() {
+      // 返回上一页，保持历史记录
+      this.$router.go(-1)
     },
 
     displayContent() {
-      if (!this.content || !this.$refs.reportContent) return
+      if (!this.content || !this.$refs.summaryContent) return
 
-      const container = this.$refs.reportContent
+      const container = this.$refs.summaryContent
       container.innerHTML = ''
 
       // 将内容按段落分割
@@ -243,10 +136,10 @@ export default {
     },
 
     async animateContent() {
-      if (!this.content || this.isAnimating || !this.$refs.reportContent) return
+      if (!this.content || this.isAnimating || !this.$refs.summaryContent) return
 
       this.isAnimating = true
-      const container = this.$refs.reportContent
+      const container = this.$refs.summaryContent
       container.innerHTML = ''
 
       // 将内容按段落分割
@@ -371,6 +264,9 @@ export default {
           } else if (text.startsWith('⚠️')) {
             item.style.color = '#FBBF24'
             item.style.listStyleType = 'none'
+          } else if (text.startsWith('⭐')) {
+            item.style.color = '#60a5fa'
+            item.style.listStyleType = 'none'
           }
         })
       }
@@ -416,5 +312,40 @@ export default {
 
 .report-content > div:last-child {
   margin-bottom: 0;
+}
+
+/* 代码块样式 */
+.report-content pre {
+  margin: 1rem 0;
+  padding: 1rem;
+  background-color: #1f2937;
+  border-radius: 0.375rem;
+  overflow-x: auto;
+}
+
+.report-content code {
+  background-color: #374151;
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+}
+
+/* 适配深色模式 */
+@media (prefers-color-scheme: dark) {
+  .report-content {
+    color: #e5e7eb;
+  }
+
+  .markdown-heading {
+    color: #f3f4f6;
+  }
+
+  .markdown-paragraph {
+    color: #d1d5db;
+  }
+
+  .markdown-list-item {
+    color: #d1d5db;
+  }
 }
 </style> 

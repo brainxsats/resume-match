@@ -31,6 +31,7 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 # Dify API配置
 DIFY_API_URL = "http://chat.bitboy.cc/v1/chat-messages"
 DIFY_API_KEY = os.getenv("DIFY_API_KEY")
+DIFY_REPORT_API_KEY = os.getenv("DIFY_REPORT_API_KEY")
 
 @app.post("/api/analyze")
 async def analyze_resume(request: Request):
@@ -76,6 +77,73 @@ async def analyze_resume(request: Request):
 
     except Exception as e:
         return {"error": str(e)}
+
+@app.post("/api/analyze-dify-summary")
+async def analyze_resume_dify(request: Request):
+    try:
+        data = await request.json()
+        resume = data.get("resume", "")
+        job = data.get("job", "")
+        report = data.get("report", "")
+
+        # 构建提示词
+        prompt = f"""请分析以下简历,职位以及报告，并给出详细的总结报告。
+
+职位描述：
+{job}
+
+简历内容：
+{resume}
+
+简历匹配报告
+{report}
+
+根据以上信息，进行深入的分析直接输出报告不要对话
+"""
+
+        async def generate_response():
+            try:
+                async with httpx.AsyncClient() as client:
+                    response = await client.post(
+                        DIFY_API_URL,
+                        headers={
+                            "Authorization": f"Bearer {DIFY_REPORT_API_KEY}",
+                            "Content-Type": "application/json"
+                        },
+                        json={
+                            "inputs": {},
+                            "query": prompt,
+                            "response_mode": "streaming",
+                            "conversation_id": "",
+                            "user": "resume-analyzer"
+                        },
+                        timeout=60.0
+                    )
+                    
+                    if response.status_code != 200:
+                        yield f"data: {json.dumps({'error': f'API请求失败: {response.status_code}'})}\n\n"
+                        return
+                    
+                    async for line in response.aiter_lines():
+                        if line.startswith("data: "):
+                            try:
+                                data = json.loads(line[6:])
+                                if "answer" in data:
+                                    yield f"data: {json.dumps({'content': data['answer']})}\n\n"
+                            except json.JSONDecodeError:
+                                continue
+
+            except Exception as e:
+                yield f"data: {json.dumps({'error': str(e)})}\n\n"
+
+        return StreamingResponse(
+            generate_response(),
+            media_type="text/event-stream"
+        )
+
+    except Exception as e:
+        return {"error": str(e)}
+
 
 @app.post("/api/analyze-dify")
 async def analyze_resume_dify(request: Request):
