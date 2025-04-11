@@ -259,18 +259,84 @@ export default {
     },
 
     async displayContentWithDelay(content, container) {
-      // 创建一个新的 p 元素来存放内容
-      const paragraph = document.createElement('p')
-      paragraph.className = 'markdown-paragraph'
-      paragraph.textContent = content
-      
-      // 如果是第一个块，清空容器
-      if (!container.hasChildNodes()) {
-        container.innerHTML = ''
+      // 解析 markdown 内容
+      const htmlContent = marked(content, {
+        breaks: true,
+        gfm: true,
+        mangle: false,
+        headerIds: false
+      })
+
+      // 创建临时容器
+      const tempDiv = document.createElement('div')
+      tempDiv.innerHTML = htmlContent
+
+      // 处理不同类型的元素并添加对应的类名
+      const elements = tempDiv.children
+      for (let i = 0; i < elements.length; i++) {
+        const element = elements[i]
+        
+        // 根据元素类型添加对应的类名
+        if (element.tagName === 'H1' || element.tagName === 'H2' || 
+            element.tagName === 'H3' || element.tagName === 'H4' || 
+            element.tagName === 'H5' || element.tagName === 'H6') {
+          element.classList.add('markdown-heading')
+          
+          // 为不同级别的标题添加特定样式
+          if (element.tagName === 'H1') {
+            element.style.fontSize = '1.4em'
+            element.style.borderBottom = '1px solid #4b5563'
+            element.style.paddingBottom = '0.5em'
+          } else if (element.tagName === 'H2') {
+            element.style.fontSize = '1.2em'
+            element.style.marginTop = '1.5em'
+          } else if (element.tagName === 'H3') {
+            element.style.fontSize = '1.1em'
+            element.style.marginTop = '1.2em'
+          }
+        } else if (element.tagName === 'P') {
+          element.classList.add('markdown-paragraph')
+        } else if (element.tagName === 'UL' || element.tagName === 'OL') {
+          element.classList.add('markdown-list')
+          const items = element.getElementsByTagName('li')
+          for (let j = 0; j < items.length; j++) {
+            const item = items[j]
+            item.classList.add('markdown-list-item')
+            
+            // 处理特殊的列表项标记
+            const text = item.textContent
+            if (text.startsWith('✓')) {
+              item.style.color = '#34D399' // 绿色
+              item.style.listStyleType = 'none'
+            } else if (text.startsWith('⚠️')) {
+              item.style.color = '#FBBF24' // 黄色
+              item.style.listStyleType = 'none'
+            }
+          }
+        }
+
+        // 如果是第一个内容，清空容器
+        if (!container.hasChildNodes()) {
+          container.innerHTML = ''
+        }
+
+        // 将处理后的元素添加到容器中
+        container.appendChild(element)
+
+        // 添加渐入动画效果
+        element.style.opacity = '0'
+        element.style.transform = 'translateY(10px)'
+        
+        // 使用 requestAnimationFrame 确保动画流畅
+        requestAnimationFrame(() => {
+          element.style.transition = 'opacity 0.3s ease, transform 0.3s ease'
+          element.style.opacity = '1'
+          element.style.transform = 'translateY(0)'
+        })
+
+        // 等待一小段时间再显示下一个元素
+        await new Promise(resolve => setTimeout(resolve, 50))
       }
-      
-      // 将段落添加到容器中
-      container.appendChild(paragraph)
     },
 
     async handleSubmit() {
@@ -287,7 +353,6 @@ export default {
       this.loading = true
       this.showResult = false
       this.markdownContent = ''
-      this.lastContent = ''
       
       try {
         let resumeContent = this.formData.resume
@@ -331,7 +396,7 @@ export default {
           // 一旦开始显示报告，就取消加载动画
           this.loading = false
           
-          let fullContent = ''
+          let content = ''
           
           const lines = response.data.split('\n')
           for (const line of lines) {
@@ -339,56 +404,20 @@ export default {
               try {
                 const data = JSON.parse(line.slice(6))
                 if (data.content) {
-                  console.log('收到新内容:', data.content)
-                  fullContent += data.content
-                  
-                  // 流式显示新内容
-                  if (this.$refs.reportContent) {
-                    await this.displayContentWithDelay(data.content, this.$refs.reportContent)
-                  }
+                  content += data.content
+                  // 将累积的内容转换为 HTML 并显示
+                  const htmlContent = marked(content, {
+                    breaks: true,
+                    gfm: true,
+                    mangle: false,
+                    headerIds: false
+                  })
+                  this.$refs.reportContent.innerHTML = htmlContent
                 }
               } catch (e) {
                 console.error('解析响应数据失败:', e)
               }
             }
-          }
-
-          // 最后使用 marked 处理完整的内容
-          if (fullContent.trim()) {
-            const htmlContent = marked(fullContent, {
-              breaks: false,
-              gfm: true,
-              mangle: false,
-              headerIds: false
-            })
-            
-            // 创建一个临时容器来处理 HTML 内容
-            const tempDiv = document.createElement('div')
-            tempDiv.innerHTML = htmlContent
-            
-            // 处理标题
-            tempDiv.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(heading => {
-              heading.classList.add('markdown-heading')
-            })
-            
-            // 处理段落
-            tempDiv.querySelectorAll('p').forEach(p => {
-              p.classList.add('markdown-paragraph')
-            })
-            
-            // 处理列表
-            tempDiv.querySelectorAll('ul, ol').forEach(list => {
-              list.classList.add('markdown-list')
-            })
-            
-            // 处理列表项
-            tempDiv.querySelectorAll('li').forEach(item => {
-              item.classList.add('markdown-list-item')
-            })
-            
-            this.$refs.reportContent.innerHTML = tempDiv.innerHTML
-          } else {
-            throw new Error('分析结果为空，请重试')
           }
 
         } catch (error) {
@@ -415,6 +444,46 @@ export default {
       } finally {
         this.loading = false
       }
+    },
+
+    isCompleteBlock(text) {
+      // 检查是否是完整的内容块
+      const lines = text.split('\n')
+      const lastLine = lines[lines.length - 1]
+      
+      // 检查是否是标题行
+      if (lastLine.match(/^#{1,6}\s.*$/)) {
+        return true
+      }
+      
+      // 检查是否是列表项（包括特殊标记）
+      const listItemPattern = /^[-*+]\s.*$|^\d+\.\s.*$/
+      if (listItemPattern.test(lastLine)) {
+        // 如果是列表项，确保它是完整的句子
+        return lastLine.trim().endsWith('。') || 
+               lastLine.trim().endsWith('！') || 
+               lastLine.trim().endsWith('？') ||
+               lastLine.trim().endsWith('.') || 
+               lastLine.trim().endsWith('!') || 
+               lastLine.trim().endsWith('?')
+      }
+      
+      // 检查是否是完整的句子
+      if (lastLine.trim().endsWith('。') || 
+          lastLine.trim().endsWith('！') || 
+          lastLine.trim().endsWith('？') ||
+          lastLine.trim().endsWith('.') || 
+          lastLine.trim().endsWith('!') || 
+          lastLine.trim().endsWith('?')) {
+        return true
+      }
+      
+      // 检查是否有段落分隔符
+      if (text.endsWith('\n\n')) {
+        return true
+      }
+      
+      return false
     }
   }
 }
