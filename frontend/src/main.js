@@ -8,13 +8,6 @@ import hljs from 'highlight.js'
 // 导入样式
 import './assets/styles/main.css'
 
-// 配置 axios
-axios.defaults.baseURL = process.env.VUE_APP_API_BASE_URL || 'http://localhost:8000'
-// 配置请求超时时间
-axios.defaults.timeout = 120000
-// 配置请求头
-axios.defaults.headers.post['Content-Type'] = 'application/json'
-
 // 配置 marked
 marked.setOptions({
   highlight: function (code, lang) {
@@ -27,9 +20,19 @@ marked.setOptions({
 })
 
 Vue.prototype.$marked = marked
-Vue.prototype.$axios = axios
 
 Vue.config.productionTip = false
+
+// 配置 axios
+const axiosInstance = axios.create({
+  baseURL: process.env.VUE_APP_API_BASE_URL || 'http://localhost:8000',
+  timeout: 1200000,
+  headers: {
+    'Content-Type': 'application/json'
+  }
+})
+
+Vue.prototype.$axios = axiosInstance
 
 new Vue({
   router,

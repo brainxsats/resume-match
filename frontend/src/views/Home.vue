@@ -137,6 +137,17 @@ export default {
       mangle: false,
       headerIds: false
     })
+
+    // 恢复数据
+    const savedData = localStorage.getItem('formData')
+    if (savedData) {
+      this.formData = JSON.parse(savedData)
+    }
+  },
+  
+  beforeDestroy() {
+    // 保存数据
+    localStorage.setItem('formData', JSON.stringify(this.formData))
   },
   
   data() {
@@ -421,17 +432,7 @@ export default {
             throw new Error(`请求失败: ${response.status} ${response.statusText}`)
           }
 
-          // 清空之前的内容并显示结果区域
-          this.showResult = true
-          if (this.$refs.reportContent) {
-            this.$refs.reportContent.innerHTML = ''
-          }
-          
-          // 一旦开始显示报告，就取消加载动画
-          this.loading = false
-          
           let content = ''
-          
           const lines = response.data.split('\n')
           for (const line of lines) {
             if (line.trim() && line.startsWith('data: ')) {
@@ -439,14 +440,6 @@ export default {
                 const data = JSON.parse(line.slice(6))
                 if (data.content) {
                   content += data.content
-                  // 将累积的内容转换为 HTML 并显示
-                  const htmlContent = marked(content, {
-                    breaks: true,
-                    gfm: true,
-                    mangle: false,
-                    headerIds: false
-                  })
-                  this.$refs.reportContent.innerHTML = htmlContent
                 }
               } catch (e) {
                 console.error('解析响应数据失败:', e)
@@ -454,27 +447,19 @@ export default {
             }
           }
 
+          // 跳转到报告页面
+          this.$router.push({
+            name: 'report',
+            params: { report: content }
+          })
+
         } catch (error) {
           console.error('分析过程出错:', error)
-          if (this.$refs.reportContent) {
-            this.$refs.reportContent.innerHTML = `
-              <div class="bg-red-50 p-4 rounded-lg">
-                <h2 class="text-xl font-semibold text-red-700">错误</h2>
-                <div class="mt-2 text-red-600">分析过程中出现错误：${error.message}</div>
-              </div>
-            `
-          }
+          alert('分析过程出错：' + (error.response?.data?.message || error.message))
         }
       } catch (error) {
         console.error('分析过程出错:', error)
-        if (this.$refs.reportContent) {
-          this.$refs.reportContent.innerHTML = `
-            <div class="bg-red-50 p-4 rounded-lg">
-              <h2 class="text-xl font-semibold text-red-700">错误</h2>
-              <div class="mt-2 text-red-600">分析过程中出现错误：${error.message}</div>
-            </div>
-          `
-        }
+        alert('分析过程出错：' + error.message)
       } finally {
         this.loading = false
       }
