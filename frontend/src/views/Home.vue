@@ -27,28 +27,27 @@
                 上传PDF简历
               </label>
               <div 
-                class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-600 border-dashed rounded-lg hover:border-gray-500 transition-colors bg-gray-700"
+                class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-600 border-dashed rounded-lg hover:border-gray-500 transition-colors bg-gray-700 cursor-pointer"
                 @drop.prevent="handleFileDrop"
                 @dragover.prevent
+                @click="$refs.pdfFile.click()"
               >
                 <div class="space-y-1 text-center">
                   <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
                     <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4-4m4-4h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                   </svg>
-                  <div class="flex text-sm text-gray-400">
-                    <label for="pdfFile" class="relative cursor-pointer rounded-md font-medium text-blue-400 hover:text-blue-300 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
-                      <span>上传文件</span>
-                      <input
-                        id="pdfFile"
-                        ref="pdfFile"
-                        type="file"
-                        accept=".pdf"
-                        class="sr-only"
-                        @change="handleFileChange"
-                      />
-                    </label>
+                  <div class="flex text-sm text-gray-400 justify-center">
+                    <span class="text-blue-400 hover:text-blue-300">上传文件</span>
                     <p class="pl-1">或拖拽文件到此处</p>
                   </div>
+                  <input
+                    id="pdfFile"
+                    ref="pdfFile"
+                    type="file"
+                    accept=".pdf"
+                    class="hidden"
+                    @change="handleFileChange"
+                  />
                   <p class="text-xs text-gray-500">仅支持 PDF 格式</p>
                 </div>
               </div>
@@ -158,21 +157,45 @@ export default {
   methods: {
     handleFileChange(event) {
       const file = event.target.files[0]
-      if (file && file.type === 'application/pdf') {
-        this.pdfFile = file
-      } else {
+      if (!file) return
+      
+      // 检查文件类型
+      if (file.type !== 'application/pdf') {
         alert('请上传 PDF 格式的文件')
+        this.$refs.pdfFile.value = ''
+        return
       }
+      
+      // 检查文件大小（限制为 10MB）
+      const maxSize = 10 * 1024 * 1024 // 10MB
+      if (file.size > maxSize) {
+        alert('文件大小不能超过 10MB')
+        this.$refs.pdfFile.value = ''
+        return
+      }
+      
+      this.pdfFile = file
     },
 
     handleFileDrop(event) {
       const file = event.dataTransfer.files[0]
-      if (file && file.type === 'application/pdf') {
-        this.pdfFile = file
-        this.$refs.pdfFile.files = event.dataTransfer.files
-      } else {
+      if (!file) return
+      
+      // 检查文件类型
+      if (file.type !== 'application/pdf') {
         alert('请上传 PDF 格式的文件')
+        return
       }
+      
+      // 检查文件大小（限制为 10MB）
+      const maxSize = 10 * 1024 * 1024 // 10MB
+      if (file.size > maxSize) {
+        alert('文件大小不能超过 10MB')
+        return
+      }
+      
+      this.pdfFile = file
+      this.$refs.pdfFile.files = event.dataTransfer.files
     },
 
     resetForm() {
@@ -362,11 +385,22 @@ export default {
           formData.append('file', this.pdfFile)
           
           try {
-            const { data } = await this.$axios.post('/api/extract-pdf', formData)
-            resumeContent = data.content
+            const { data } = await this.$axios.post('/api/extract-pdf', formData, {
+              headers: {
+                'Content-Type': 'multipart/form-data'
+              },
+              timeout: 30000 // 30秒超时
+            })
+            
+            if (data && data.content) {
+              resumeContent = data.content
+            } else {
+              throw new Error('PDF解析结果为空')
+            }
           } catch (error) {
             console.error('PDF解析失败:', error)
-            alert('PDF解析失败：' + (error.response?.data?.message || error.message))
+            const errorMessage = error.response?.data?.message || error.message || '未知错误'
+            alert('PDF解析失败：' + errorMessage)
             this.loading = false
             return
           }
@@ -448,16 +482,16 @@ export default {
 
     isCompleteBlock(text) {
       // 检查是否是完整的内容块
-      const lines = text.split('\n')
-      const lastLine = lines[lines.length - 1]
+      const lines = text.split('\n');
+      const lastLine = lines[lines.length - 1];
       
       // 检查是否是标题行
       if (lastLine.match(/^#{1,6}\s.*$/)) {
-        return true
+        return true;
       }
       
       // 检查是否是列表项（包括特殊标记）
-      const listItemPattern = /^[-*+]\s.*$|^\d+\.\s.*$/
+      const listItemPattern = /^[-*+]\s.*$|^\d+\.\s.*$/;
       if (listItemPattern.test(lastLine)) {
         // 如果是列表项，确保它是完整的句子
         return lastLine.trim().endsWith('。') || 
@@ -465,7 +499,7 @@ export default {
                lastLine.trim().endsWith('？') ||
                lastLine.trim().endsWith('.') || 
                lastLine.trim().endsWith('!') || 
-               lastLine.trim().endsWith('?')
+               lastLine.trim().endsWith('?');
       }
       
       // 检查是否是完整的句子
@@ -475,15 +509,15 @@ export default {
           lastLine.trim().endsWith('.') || 
           lastLine.trim().endsWith('!') || 
           lastLine.trim().endsWith('?')) {
-        return true
+        return true;
       }
       
       // 检查是否有段落分隔符
       if (text.endsWith('\n\n')) {
-        return true
+        return true;
       }
       
-      return false
+      return false;
     }
   }
 }
@@ -582,7 +616,7 @@ export default {
 .report-content ul,
 .report-content ol {
   margin: 1em 0;
-  padding-left: 1.5em;
+  padding-left: 0.5em;
 }
 
 .report-content li {
@@ -606,9 +640,9 @@ export default {
 .stream-block ol,
 .report-content ul,
 .report-content ol {
-  padding-left: 2rem;
+  padding-left: 1rem;
   margin: 0.5rem 0;
-  width: calc(100% - 2rem);
+  width: calc(100% - 1rem);
 }
 
 /* 调整代码块样式 */
@@ -787,7 +821,7 @@ export default {
 
 .report-content {
   color: #e5e7eb;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.8;
   letter-spacing: 0.3px;
 }
@@ -817,7 +851,7 @@ export default {
 .report-content ul,
 .report-content ol {
   margin: 1rem 0;
-  padding-left: 2rem;
+  padding-left: 1rem;
 }
 
 .report-content li {
@@ -924,7 +958,7 @@ export default {
 .report-content ul,
 .report-content ol {
   margin: 0.75rem 0;
-  padding-left: 2rem;
+  padding-left: 1rem;
   display: block;
 }
 
@@ -1140,7 +1174,7 @@ ol.markdown-list .markdown-list-item {
 .report-content,
 .markdown-paragraph,
 .markdown-list-item {
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.8;
   letter-spacing: 0.3px;
 }
