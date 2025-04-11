@@ -64,7 +64,7 @@
               </label>
               <textarea
                 v-model="formData.job"
-                class="w-full h-[600px] p-4 bg-gray-700 text-gray-100 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500"
+                class="w-full h-[800px] p-4 bg-gray-700 text-gray-100 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500"
                 placeholder="请输入目标职位的要求描述，包括：
 
 1. 岗位职责
