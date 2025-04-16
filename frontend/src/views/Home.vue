@@ -4,82 +4,84 @@
       <h1 class="text-3xl font-bold text-gray-100 mb-8">简历匹配度分析</h1>
       <!-- <p class="text-gray-400 mb-8">请先填写您的工作经历，例位描述等，AI会根据您的经历定制化您的简历，可提升面试几率。</p> -->
       
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- 左侧：简历内容 -->
-        <div class="bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-700">
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">
-                简历内容
-              </label>
-              <!-- PDF 预览区域 -->
-              <div v-if="pdfPreviewUrl" class="mb-4">
-                <div class="relative w-full h-[600px] bg-gray-700 rounded-lg overflow-hidden">
-                  <iframe
-                    :src="pdfPreviewUrl"
-                    class="absolute inset-0 w-full h-full"
-                    frameborder="0"
-                  ></iframe>
+      <!-- 简历和职位信息区域 -->
+      <transition name="slide-fade" mode="out-in">
+        <div v-show="!showReport" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- 左侧：简历内容 -->
+          <div class="bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-700">
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">
+                  简历内容
+                </label>
+                <!-- PDF 预览区域 -->
+                <div v-if="pdfPreviewUrl" class="mb-4">
+                  <div class="relative w-full h-[600px] bg-gray-700 rounded-lg overflow-hidden">
+                    <iframe
+                      :src="pdfPreviewUrl"
+                      class="absolute inset-0 w-full h-full"
+                      frameborder="0"
+                    ></iframe>
+                  </div>
+                  <div class="mt-2 flex justify-end">
+                    <button
+                      @click="clearPdf"
+                      class="text-sm text-red-400 hover:text-red-300 flex items-center"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      清除 PDF
+                    </button>
+                  </div>
                 </div>
-                <div class="mt-2 flex justify-end">
-                  <button
-                    @click="clearPdf"
-                    class="text-sm text-red-400 hover:text-red-300 flex items-center"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                    清除 PDF
-                  </button>
-                </div>
-              </div>
-              <!-- 文本输入区域 -->
-              <textarea
-                v-if="!pdfPreviewUrl"
-                v-model="formData.resume"
-                class="w-full h-[600px] p-4 bg-gray-700 text-gray-100 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500"
-                placeholder="请详细描述您的工作经历、项目经验、技能特长等。建议包含：
+                <!-- 文本输入区域 -->
+                <textarea
+                  v-if="!pdfPreviewUrl"
+                  v-model="formData.resume"
+                  class="w-full h-[600px] p-4 bg-gray-700 text-gray-100 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500"
+                  placeholder="请详细描述您的工作经历、项目经验、技能特长等。建议包含：
 
 1. 工作/实习经历：公司、职位、时间段、主要职责和成就
 2. 项目经验：项目名称、角色、技术栈、主要贡献
 3. 技能特长：专业技能、证书、语言能力等"
-              />
-              <!-- PDF 上传区域 -->
-              <div class="mt-4">
-                <div class="flex items-center justify-center w-full">
-                  <label class="flex flex-col w-full h-32 border-2 border-gray-600 border-dashed hover:bg-gray-800 hover:border-gray-500 rounded-lg cursor-pointer">
-                    <div class="flex flex-col items-center justify-center pt-7">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-gray-400 group-hover:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                      </svg>
-                      <p class="pt-1 text-sm tracking-wider text-gray-400 group-hover:text-gray-300">
-                        点击上传 PDF 简历或将文件拖放到这里
-                      </p>
-                    </div>
-                    <input 
-                      type="file" 
-                      class="opacity-0" 
-                      accept=".pdf"
-                      @change="handleFileUpload"
-                    />
-                  </label>
+                />
+                <!-- PDF 上传区域 -->
+                <div class="mt-4">
+                  <div class="flex items-center justify-center w-full">
+                    <label class="flex flex-col w-full h-32 border-2 border-gray-600 border-dashed hover:bg-gray-800 hover:border-gray-500 rounded-lg cursor-pointer">
+                      <div class="flex flex-col items-center justify-center pt-7">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-gray-400 group-hover:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        <p class="pt-1 text-sm tracking-wider text-gray-400 group-hover:text-gray-300">
+                          点击上传 PDF 简历或将文件拖放到这里
+                        </p>
+                      </div>
+                      <input 
+                        type="file" 
+                        class="opacity-0" 
+                        accept=".pdf"
+                        @change="handleFileUpload"
+                      />
+                    </label>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- 右侧：职位信息 -->
-        <div class="bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-700">
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">
-                目标职位信息
-              </label>
-              <textarea
-                v-model="formData.job"
-                class="w-full h-[800px] p-4 bg-gray-700 text-gray-100 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500"
-                placeholder="请输入目标职位的要求描述，包括：
+          <!-- 右侧：职位信息 -->
+          <div class="bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-700">
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">
+                  目标职位信息
+                </label>
+                <textarea
+                  v-model="formData.job"
+                  class="w-full h-[800px] p-4 bg-gray-700 text-gray-100 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500"
+                  placeholder="请输入目标职位的要求描述，包括：
 
 1. 岗位职责
 2. 任职要求
@@ -87,41 +89,76 @@
 4. 其他要求（如工作年限、学历等）
 
 AI 将帮您分析简历与职位的匹配程度，并提供优化建议。"
-              />
+                />
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </transition>
 
-      <!-- 底部按钮 -->
+      <!-- 分析结果 -->
+      <transition name="slide-fade" mode="out-in">
+        <div v-show="showReport" class="mt-8 bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-700">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-100">分析报告</h2>
+            <div class="flex space-x-4">
+              <button
+                @click="fetchSummaryReport"
+                :disabled="isGeneratingSummary"
+                class="px-4 py-2 text-sm text-gray-300 border border-gray-600 rounded-md hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span v-if="isGeneratingSummary" class="flex items-center">
+                  <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  正在生成总结报告...
+                </span>
+                <span v-else>获取总结报告</span>
+              </button>
+            </div>
+          </div>
+          <div ref="reportContent" class="report-content transition-all duration-500 ease-in-out" :class="{ 'opacity-0': loading }"></div>
+        </div>
+      </transition>
+
+      <!-- 底部按钮区域 -->
       <div class="mt-8 flex justify-center">
-        <button
-          type="button"
-          class="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          :class="{ 'opacity-50 cursor-not-allowed': loading }"
-          :disabled="loading"
-          @click="handleSubmit"
-        >
-          <svg v-if="loading" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          {{ loading ? '分析中...' : '开始分析' }}
-        </button>
+        <transition name="fade" mode="out-in">
+          <button
+            v-if="!showResult"
+            @click="handleSubmit"
+            :disabled="loading"
+            class="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300"
+            :class="{ 'opacity-50 cursor-not-allowed': loading }"
+          >
+            <svg v-if="loading" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            {{ loading ? '分析中...' : '开始分析' }}
+          </button>
+          <button
+            v-else
+            @click="toggleView"
+            class="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300"
+          >
+            {{ showReport ? '返回简历' : '查看报告' }}
+          </button>
+        </transition>
       </div>
 
       <!-- 加载动画 -->
-      <div v-if="loading" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center">
-        <div class="bg-gray-800 p-6 rounded-lg shadow-xl border border-gray-700">
-          <div class="spinner"></div>
-          <div class="mt-4 text-gray-300">正在分析中，请稍候...</div>
+      <transition name="fade">
+        <div v-if="loading || isProcessing" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50">
+          <div class="bg-gray-800 p-8 rounded-lg shadow-xl border border-gray-700 transform transition-all duration-500">
+            <div class="flex flex-col items-center">
+              <div class="spinner mb-4"></div>
+              <div class="text-gray-300 text-lg">{{ loadingText }}</div>
+            </div>
+          </div>
         </div>
-      </div>
-
-      <!-- 分析结果 -->
-      <div v-show="showResult" class="mt-8 bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-700">
-        <div ref="reportContent" class="report-content"></div>
-      </div>
+      </transition>
     </div>
   </div>
 </template>
@@ -176,7 +213,20 @@ export default {
       showResult: false,
       markdownContent: '',
       lastContent: '',
-      isProcessing: false
+      isProcessing: false,
+      isGeneratingSummary: false,
+      showReport: false
+    }
+  },
+
+  computed: {
+    loadingText() {
+      if (this.loading) {
+        return '正在分析中，请稍候...'
+      } else if (this.isProcessing) {
+        return '正在处理中，请稍候...'
+      }
+      return ''
     }
   },
 
@@ -219,50 +269,55 @@ export default {
       window.print()
     },
 
-    processStreamContent(content) {
-      const segments = []
-      let currentSegment = ''
-      const lines = content.split('\n')
-      
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i]
+    async processStreamContent(content) {
+      this.isProcessing = true
+      try {
+        const segments = []
+        let currentSegment = ''
+        const lines = content.split('\n')
         
-        if (line.match(/^#{1,6}\s/)) {
-          if (currentSegment.trim()) {
-            segments.push(currentSegment.trim())
-          }
-          segments.push(line)
-          currentSegment = ''
-        }
-        else if (line.match(/^[-*+]\s/) || line.match(/^\d+\.\s/)) {
-          if (currentSegment.trim() && !currentSegment.match(/(?:^|\n)[-*+]\s/) && !currentSegment.match(/(?:^|\n)\d+\.\s/)) {
-            segments.push(currentSegment.trim())
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i]
+          
+          if (line.match(/^#{1,6}\s/)) {
+            if (currentSegment.trim()) {
+              segments.push(currentSegment.trim())
+            }
+            segments.push(line)
             currentSegment = ''
           }
-          if (currentSegment && !currentSegment.endsWith('\n')) {
-            currentSegment += '\n'
+          else if (line.match(/^[-*+]\s/) || line.match(/^\d+\.\s/)) {
+            if (currentSegment.trim() && !currentSegment.match(/(?:^|\n)[-*+]\s/) && !currentSegment.match(/(?:^|\n)\d+\.\s/)) {
+              segments.push(currentSegment.trim())
+              currentSegment = ''
+            }
+            if (currentSegment && !currentSegment.endsWith('\n')) {
+              currentSegment += '\n'
+            }
+            currentSegment += line
           }
-          currentSegment += line
-        }
-        else if (!line.trim()) {
-          if (currentSegment.trim()) {
-            segments.push(currentSegment.trim())
+          else if (!line.trim()) {
+            if (currentSegment.trim()) {
+              segments.push(currentSegment.trim())
+            }
+            currentSegment = ''
           }
-          currentSegment = ''
-        }
-        else {
-          if (currentSegment && !line.startsWith(' ') && !line.startsWith('\t')) {
-            currentSegment += ' '
+          else {
+            if (currentSegment && !line.startsWith(' ') && !line.startsWith('\t')) {
+              currentSegment += ' '
+            }
+            currentSegment += line.trim()
           }
-          currentSegment += line.trim()
         }
+        
+        if (currentSegment.trim()) {
+          segments.push(currentSegment.trim())
+        }
+        
+        return segments
+      } finally {
+        this.isProcessing = false
       }
-      
-      if (currentSegment.trim()) {
-        segments.push(currentSegment.trim())
-      }
-      
-      return segments
     },
 
     createStreamBlock(content) {
@@ -286,84 +341,79 @@ export default {
     },
 
     async displayContentWithDelay(content, container) {
-      // 解析 markdown 内容
-      const htmlContent = marked(content, {
-        breaks: true,
-        gfm: true,
-        mangle: false,
-        headerIds: false
-      })
+      // 创建新的容器元素
+      const contentDiv = document.createElement('div')
+      contentDiv.className = 'stream-block'
+      container.appendChild(contentDiv)
 
-      // 创建临时容器
+      // 将 markdown 转换为 HTML
+      const htmlContent = marked(content)
       const tempDiv = document.createElement('div')
       tempDiv.innerHTML = htmlContent
 
-      // 处理不同类型的元素并添加对应的类名
-      const elements = tempDiv.children
-      for (let i = 0; i < elements.length; i++) {
-        const element = elements[i]
+      // 遍历每个元素
+      for (const element of tempDiv.children) {
+        const newElement = document.createElement(element.tagName)
         
-        // 根据元素类型添加对应的类名
-        if (element.tagName === 'H1' || element.tagName === 'H2' || 
-            element.tagName === 'H3' || element.tagName === 'H4' || 
-            element.tagName === 'H5' || element.tagName === 'H6') {
-          element.classList.add('markdown-heading')
-          
-          // 为不同级别的标题添加特定样式
-          if (element.tagName === 'H1') {
-            element.style.fontSize = '1.4em'
-            element.style.borderBottom = '1px solid #4b5563'
-            element.style.paddingBottom = '0.5em'
-          } else if (element.tagName === 'H2') {
-            element.style.fontSize = '1.2em'
-            element.style.marginTop = '1.5em'
-          } else if (element.tagName === 'H3') {
-            element.style.fontSize = '1.1em'
-            element.style.marginTop = '1.2em'
-          }
-        } else if (element.tagName === 'P') {
-          element.classList.add('markdown-paragraph')
-        } else if (element.tagName === 'UL' || element.tagName === 'OL') {
-          element.classList.add('markdown-list')
-          const items = element.getElementsByTagName('li')
-          for (let j = 0; j < items.length; j++) {
-            const item = items[j]
-            item.classList.add('markdown-list-item')
-            
-            // 处理特殊的列表项标记
-            const text = item.textContent
-            if (text.startsWith('✓')) {
-              item.style.color = '#34D399' // 绿色
-              item.style.listStyleType = 'none'
-            } else if (text.startsWith('⚠️')) {
-              item.style.color = '#FBBF24' // 黄色
-              item.style.listStyleType = 'none'
-            }
-          }
-        }
-
-        // 如果是第一个内容，清空容器
-        if (!container.hasChildNodes()) {
-          container.innerHTML = ''
-        }
-
-        // 将处理后的元素添加到容器中
-        container.appendChild(element)
-
-        // 添加渐入动画效果
-        element.style.opacity = '0'
-        element.style.transform = 'translateY(10px)'
-        
-        // 使用 requestAnimationFrame 确保动画流畅
-        requestAnimationFrame(() => {
-          element.style.transition = 'opacity 0.3s ease, transform 0.3s ease'
-          element.style.opacity = '1'
-          element.style.transform = 'translateY(0)'
+        // 复制元素的类和属性
+        Array.from(element.attributes).forEach(attr => {
+          newElement.setAttribute(attr.name, attr.value)
         })
 
-        // 等待一小段时间再显示下一个元素
-        await new Promise(resolve => setTimeout(resolve, 50))
+        // 根据元素类型添加样式类
+        if (element.tagName.match(/^H[1-6]$/)) {
+          newElement.classList.add('markdown-heading')
+          if (element.tagName === 'H1') {
+            newElement.style.fontSize = '1.4em'
+            newElement.style.borderBottom = '1px solid #4b5563'
+            newElement.style.paddingBottom = '0.5em'
+          } else if (element.tagName === 'H2') {
+            newElement.style.fontSize = '1.2em'
+            newElement.style.marginTop = '1.5em'
+          } else if (element.tagName === 'H3') {
+            newElement.style.fontSize = '1.1em'
+            newElement.style.marginTop = '1.2em'
+          }
+        } else if (element.tagName === 'P') {
+          newElement.classList.add('markdown-paragraph')
+        } else if (element.tagName === 'UL' || element.tagName === 'OL') {
+          newElement.classList.add('markdown-list')
+        }
+
+        contentDiv.appendChild(newElement)
+
+        // 如果是列表，直接添加列表项
+        if (element.tagName === 'UL' || element.tagName === 'OL') {
+          for (const item of element.children) {
+            const listItem = document.createElement('li')
+            listItem.classList.add('markdown-list-item')
+            
+            // 处理特殊标记
+            const text = item.textContent
+            if (text.startsWith('✓')) {
+              listItem.style.color = '#34D399' // 绿色
+              listItem.style.listStyleType = 'none'
+            } else if (text.startsWith('⚠️')) {
+              listItem.style.color = '#FBBF24' // 黄色
+              listItem.style.listStyleType = 'none'
+            } else if (text.startsWith('⭐')) {
+              listItem.style.color = '#60A5FA' // 蓝色
+              listItem.style.listStyleType = 'none'
+            }
+
+            // 直接设置文本内容
+            listItem.textContent = item.textContent
+            newElement.appendChild(listItem)
+          }
+        } else {
+          // 直接设置文本内容
+          newElement.textContent = element.textContent
+        }
       }
+    },
+
+    toggleView() {
+      this.showReport = !this.showReport
     },
 
     async handleSubmit() {
@@ -411,51 +461,162 @@ export default {
           }
         }
 
+        // 保存表单数据到 localStorage
+        localStorage.setItem('formData', JSON.stringify(this.formData))
+
+        // 创建 AbortController 用于取消请求
+        const controller = new AbortController()
+        
         try {
-          const response = await this.$axios.post('/api/analyze-dify', {
-            resume: resumeContent,
-            job: this.formData.job
-          }, {
-            responseType: 'text',
+          const response = await fetch(`${this.$axios.defaults.baseURL}/api/analyze-dify`, {
+            method: 'POST',
             headers: {
               'Content-Type': 'application/json'
-            }
+            },
+            body: JSON.stringify({
+              resume: resumeContent,
+              job: this.formData.job
+            }),
+            signal: controller.signal
           })
 
-          if (response.status !== 200) {
+          if (!response.ok) {
             throw new Error(`请求失败: ${response.status} ${response.statusText}`)
           }
 
-          let content = ''
-          const lines = response.data.split('\n')
-          for (const line of lines) {
-            if (line.trim() && line.startsWith('data: ')) {
-              try {
-                const data = JSON.parse(line.slice(6))
-                if (data.content) {
-                  content += data.content
+          this.showResult = true
+          this.loading = false
+          this.showReport = true
+          const reportContent = this.$refs.reportContent
+          reportContent.innerHTML = ''
+
+          // 创建当前段落的容器
+          let currentBlock = document.createElement('div')
+          currentBlock.className = 'stream-block'
+          reportContent.appendChild(currentBlock)
+
+          // 创建文本解码器
+          const decoder = new TextDecoder()
+          const reader = response.body.getReader()
+          let buffer = ''
+          let isReading = true
+
+          while (isReading) {
+            const { value, done } = await reader.read()
+            if (done) {
+              isReading = false
+              break
+            }
+
+            // 解码新的数据块
+            const chunk = decoder.decode(value, { stream: true })
+            buffer += chunk
+
+            // 处理完整的数据行
+            const lines = buffer.split('\n')
+            buffer = lines.pop() || ''
+
+            for (const line of lines) {
+              if (line.trim() && line.startsWith('data: ')) {
+                try {
+                  const data = JSON.parse(line.slice(6))
+                  if (data.content) {
+                    // 检查是否需要创建新的块
+                    if (data.content.includes('\n\n') || data.content.match(/^#{1,6}\s/)) {
+                      currentBlock = document.createElement('div')
+                      currentBlock.className = 'stream-block'
+                      reportContent.appendChild(currentBlock)
+                    }
+
+                    // 将内容直接添加到当前块
+                    const textNode = document.createTextNode(data.content)
+                    currentBlock.appendChild(textNode)
+
+                    // 如果是标题，添加样式
+                    if (data.content.match(/^#{1,6}\s/)) {
+                      currentBlock.classList.add('markdown-heading')
+                    }
+
+                    // 滚动到最新内容
+                    currentBlock.scrollIntoView({ behavior: 'smooth', block: 'end' })
+                  }
+                } catch (e) {
+                  console.error('解析响应数据失败:', e)
                 }
-              } catch (e) {
-                console.error('解析响应数据失败:', e)
               }
             }
           }
 
-          // 跳转到报告页面
-          this.$router.push({
-            name: 'report',
-            params: { report: content }
-          })
-
         } catch (error) {
-          console.error('分析过程出错:', error)
-          alert('分析过程出错：' + (error.response?.data?.message || error.message))
+          if (error.name === 'AbortError') {
+            console.log('请求被取消')
+          } else {
+            throw error
+          }
         }
+
       } catch (error) {
         console.error('分析过程出错:', error)
-        alert('分析过程出错：' + error.message)
+        alert('分析过程出错：' + (error.response?.data?.message || error.message))
       } finally {
         this.loading = false
+      }
+    },
+
+    async fetchSummaryReport() {
+      this.isProcessing = true
+      try {
+        this.isGeneratingSummary = true
+        const response = await this.$axios.post('/api/analyze-dify-summary', {
+          resume: this.formData.resume,
+          job: this.formData.job,
+          report: this.markdownContent
+        }, {
+          responseType: 'text',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+
+        if (response.status !== 200) {
+          throw new Error(`请求失败: ${response.status} ${response.statusText}`)
+        }
+
+        let content = ''
+        const lines = response.data.split('\n')
+        for (const line of lines) {
+          if (line.trim() && line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6))
+              if (data.content) {
+                content += data.content
+              }
+            } catch (e) {
+              console.error('解析响应数据失败:', e)
+            }
+          }
+        }
+
+        if (content) {
+          // 保存到 sessionStorage，这样返回时可以恢复
+          sessionStorage.setItem('summaryContent', content)
+          // 跳转到新页面展示总结报告
+          this.$router.push({
+            name: 'summary',
+            params: { 
+              summary: content,
+              isNew: true
+            }
+          })
+        } else {
+          throw new Error('获取总结报告失败：返回内容为空')
+        }
+      } catch (error) {
+        console.error('获取总结报告出错:', error)
+        alert('获取总结报告出错：' + (error.response?.data?.message || error.message))
+      } finally {
+        this.isGeneratingSummary = false
+        this.isProcessing = false
       }
     },
 
@@ -479,16 +640,7 @@ export default {
                lastLine.trim().endsWith('.') || 
                lastLine.trim().endsWith('!') || 
                lastLine.trim().endsWith('?');
-      }
-      
-      // 检查是否是完整的句子
-      if (lastLine.trim().endsWith('。') || 
-          lastLine.trim().endsWith('！') || 
-          lastLine.trim().endsWith('？') ||
-          lastLine.trim().endsWith('.') || 
-          lastLine.trim().endsWith('!') || 
-          lastLine.trim().endsWith('?')) {
-        return true;
+        // return true;
       }
       
       // 检查是否有段落分隔符
@@ -522,11 +674,10 @@ export default {
 }
 
 .spinner {
-  width: 40px;
-  height: 40px;
-  margin: 0 auto;
-  border: 3px solid #374151;
-  border-top: 3px solid #3b82f6;
+  width: 50px;
+  height: 50px;
+  border: 4px solid #374151;
+  border-top: 4px solid #3b82f6;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -1210,4 +1361,151 @@ ol.markdown-list .markdown-list-item {
     color: #6b7280;
   }
 }
-</style> 
+
+/* 添加切换按钮的过渡效果 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* 优化切换按钮样式 */
+.toggle-button {
+  transition: all 0.3s ease;
+}
+
+.toggle-button:hover {
+  transform: translateY(-1px);
+}
+
+/* 确保内容切换时的平滑过渡 */
+.grid {
+  transition: opacity 0.3s ease;
+}
+
+.grid.hidden {
+  opacity: 0;
+}
+
+/* 添加过渡动画效果 */
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 500ms;
+}
+
+.duration-500 {
+  transition-duration: 500ms;
+}
+
+.ease-in-out {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 添加缩放动画 */
+.scale-110 {
+  transform: scale(1.1);
+}
+
+/* 优化报告内容过渡 */
+.report-content {
+  transition: opacity 0.5s ease-in-out;
+}
+
+/* 添加淡入淡出效果 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s ease-in-out;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* 优化内容切换动画 */
+.grid {
+  transition: all 0.5s ease-in-out;
+}
+
+.grid.hidden {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+/* 优化报告容器动画 */
+.mt-8.bg-gray-800 {
+  transition: all 0.5s ease-in-out;
+}
+
+.mt-8.bg-gray-800.hidden {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+/* 淡入淡出动画 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* 滑动淡入淡出动画 */
+.slide-fade-enter-active,
+.slide-fade-leave-active {
+  transition: all 0.3s ease;
+}
+
+.slide-fade-enter-from {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.slide-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+/* 按钮过渡效果 */
+button {
+  transition: all 0.3s ease;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* 内容区域过渡效果 */
+.grid,
+.mt-8.bg-gray-800 {
+  transition: all 0.3s ease-in-out;
+}
+
+.report-content {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>

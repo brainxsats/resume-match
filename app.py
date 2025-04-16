@@ -166,8 +166,9 @@ async def analyze_resume_dify(request: Request):
 
         async def generate_response():
             try:
-                async with httpx.AsyncClient() as client:
-                    response = await client.post(
+                async with httpx.AsyncClient(timeout=None) as client:
+                    async with client.stream(
+                        'POST',
                         DIFY_API_URL,
                         headers={
                             "Authorization": f"Bearer {DIFY_API_KEY}",
@@ -179,22 +180,20 @@ async def analyze_resume_dify(request: Request):
                             "response_mode": "streaming",
                             "conversation_id": "",
                             "user": "resume-analyzer"
-                        },
-                        timeout=60.0
-                    )
-                    
-                    if response.status_code != 200:
-                        yield f"data: {json.dumps({'error': f'API请求失败: {response.status_code}'})}\n\n"
-                        return
-                    
-                    async for line in response.aiter_lines():
-                        if line.startswith("data: "):
-                            try:
-                                data = json.loads(line[6:])
-                                if "answer" in data:
-                                    yield f"data: {json.dumps({'content': data['answer']})}\n\n"
-                            except json.JSONDecodeError:
-                                continue
+                        }
+                    ) as response:
+                        if response.status_code != 200:
+                            yield f"data: {json.dumps({'error': f'API请求失败: {response.status_code}'})}\n\n"
+                            return
+
+                        async for line in response.aiter_lines():
+                            if line.startswith("data: "):
+                                try:
+                                    data = json.loads(line[6:])
+                                    if "answer" in data:
+                                        yield f"data: {json.dumps({'content': data['answer']})}\n\n"
+                                except json.JSONDecodeError:
+                                    continue
 
             except Exception as e:
                 yield f"data: {json.dumps({'error': str(e)})}\n\n"
