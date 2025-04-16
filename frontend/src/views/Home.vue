@@ -119,7 +119,9 @@ AI 将帮您分析简历与职位的匹配程度，并提供优化建议。"
               </div>
             </div>
           </div>
-          <StreamingMarkdown v-else :content="markdownContent" class="report-content" />
+          <div v-else ref="reportContainer" class="report-container">
+            <StreamingMarkdown :content="markdownContent" class="report-content" />
+          </div>
         </div>
       </transition>
 
@@ -392,6 +394,19 @@ export default {
         alert('分析过程出错：' + (error.response?.data?.message || error.message))
       } finally {
         this.loading = false
+      }
+    }
+  },
+
+  watch: {
+    markdownContent(newVal) {
+      if (newVal) {
+        this.$nextTick(() => {
+          const container = this.$refs.reportContainer;
+          if (container) {
+            container.scrollTop = container.scrollHeight;
+          }
+        });
       }
     }
   }
@@ -1572,5 +1587,31 @@ button:active:not(:disabled) {
     transform: scale(1);
     opacity: 0.2;
   }
+}
+
+/* 报告容器样式 */
+.report-container {
+  max-height: calc(100vh - 300px);
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  padding-right: 1rem;
+}
+
+.report-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.report-container::-webkit-scrollbar-track {
+  background: #1f2937;
+  border-radius: 4px;
+}
+
+.report-container::-webkit-scrollbar-thumb {
+  background: #3b82f6;
+  border-radius: 4px;
+}
+
+.report-container::-webkit-scrollbar-thumb:hover {
+  background: #60a5fa;
 }
 </style>
