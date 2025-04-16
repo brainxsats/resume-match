@@ -99,26 +99,27 @@ AI 将帮您分析简历与职位的匹配程度，并提供优化建议。"
       <!-- 分析结果 -->
       <transition name="slide-fade" mode="out-in">
         <div v-show="showReport" class="mt-8 bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-700">
-          <div class="flex justify-between items-center mb-6">
+          <!-- <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold text-gray-100">分析报告</h2>
-            <div class="flex space-x-4">
-              <button
-                @click="fetchSummaryReport"
-                :disabled="isGeneratingSummary"
-                class="px-4 py-2 text-sm text-gray-300 border border-gray-600 rounded-md hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <span v-if="isGeneratingSummary" class="flex items-center">
-                  <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  正在生成总结报告...
-                </span>
-                <span v-else>获取总结报告</span>
-              </button>
+          </div> -->
+          <div v-if="!markdownContent" class="flex flex-col items-center justify-center py-12">
+            <div class="tech-loader">
+              <div class="tech-loader-inner">
+                <div class="tech-loader-line"></div>
+                <div class="tech-loader-line"></div>
+                <div class="tech-loader-line"></div>
+                <div class="tech-loader-line"></div>
+                <div class="tech-loader-line"></div>
+              </div>
+              <div class="tech-loader-text">正在生成报告</div>
+              <div class="tech-loader-dots">
+                <span>.</span>
+                <span>.</span>
+                <span>.</span>
+              </div>
             </div>
           </div>
-          <div ref="reportContent" class="report-content transition-all duration-500 ease-in-out" :class="{ 'opacity-0': loading }"></div>
+          <StreamingMarkdown v-else :content="markdownContent" class="report-content" />
         </div>
       </transition>
 
@@ -153,8 +154,24 @@ AI 将帮您分析简历与职位的匹配程度，并提供优化建议。"
         <div v-if="loading || isProcessing" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50">
           <div class="bg-gray-800 p-8 rounded-lg shadow-xl border border-gray-700 transform transition-all duration-500">
             <div class="flex flex-col items-center">
-              <div class="spinner mb-4"></div>
+              <div class="tech-spinner mb-4">
+                <div class="tech-spinner-inner">
+                  <div class="tech-spinner-circle"></div>
+                  <div class="tech-spinner-circle"></div>
+                  <div class="tech-spinner-circle"></div>
+                  <div class="tech-spinner-circle"></div>
+                  <div class="tech-spinner-circle"></div>
+                </div>
+                <div class="tech-spinner-text">AI 分析中</div>
+              </div>
               <div class="text-gray-300 text-lg">{{ loadingText }}</div>
+              <div class="mt-4 text-sm text-gray-400">
+                <div class="tech-dots">
+                  <span>.</span>
+                  <span>.</span>
+                  <span>.</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -164,31 +181,15 @@ AI 将帮您分析简历与职位的匹配程度，并提供优化建议。"
 </template>
 
 <script>
-import hljs from 'highlight.js'
-import { marked } from 'marked'
+import StreamingMarkdown from '@/components/StreamingMarkdown.vue'
 
 export default {
   name: 'Home',
+  components: {
+    StreamingMarkdown
+  },
   
   created() {
-    // 配置 marked
-    marked.setOptions({
-      highlight: function(code, lang) {
-        if (lang && hljs.getLanguage(lang)) {
-          try {
-            return hljs.highlight(code, { language: lang }).value
-          } catch (e) {
-            console.error(e)
-          }
-        }
-        return code
-      },
-      breaks: true,
-      gfm: true,
-      mangle: false,
-      headerIds: false
-    })
-
     // 恢复数据
     const savedData = localStorage.getItem('formData')
     if (savedData) {
@@ -214,7 +215,6 @@ export default {
       markdownContent: '',
       lastContent: '',
       isProcessing: false,
-      isGeneratingSummary: false,
       showReport: false
     }
   },
@@ -260,156 +260,12 @@ export default {
         this.$refs.pdfFile.value = ''
       }
       this.showResult = false
-      this.$refs.reportContent.innerHTML = ''
       this.markdownContent = ''
       this.lastContent = ''
     },
 
     printReport() {
       window.print()
-    },
-
-    async processStreamContent(content) {
-      this.isProcessing = true
-      try {
-        const segments = []
-        let currentSegment = ''
-        const lines = content.split('\n')
-        
-        for (let i = 0; i < lines.length; i++) {
-          const line = lines[i]
-          
-          if (line.match(/^#{1,6}\s/)) {
-            if (currentSegment.trim()) {
-              segments.push(currentSegment.trim())
-            }
-            segments.push(line)
-            currentSegment = ''
-          }
-          else if (line.match(/^[-*+]\s/) || line.match(/^\d+\.\s/)) {
-            if (currentSegment.trim() && !currentSegment.match(/(?:^|\n)[-*+]\s/) && !currentSegment.match(/(?:^|\n)\d+\.\s/)) {
-              segments.push(currentSegment.trim())
-              currentSegment = ''
-            }
-            if (currentSegment && !currentSegment.endsWith('\n')) {
-              currentSegment += '\n'
-            }
-            currentSegment += line
-          }
-          else if (!line.trim()) {
-            if (currentSegment.trim()) {
-              segments.push(currentSegment.trim())
-            }
-            currentSegment = ''
-          }
-          else {
-            if (currentSegment && !line.startsWith(' ') && !line.startsWith('\t')) {
-              currentSegment += ' '
-            }
-            currentSegment += line.trim()
-          }
-        }
-        
-        if (currentSegment.trim()) {
-          segments.push(currentSegment.trim())
-        }
-        
-        return segments
-      } finally {
-        this.isProcessing = false
-      }
-    },
-
-    createStreamBlock(content) {
-      const block = document.createElement('div')
-      block.className = 'stream-block stream-content'
-      block.style.display = 'block'
-      block.innerHTML = content
-      return block
-    },
-
-    smoothScrollToElement(element) {
-      const container = document.documentElement
-      const elementTop = element.offsetTop
-      const containerTop = container.scrollTop
-      const targetScroll = elementTop - containerTop - 100
-
-      window.scrollTo({
-        top: targetScroll,
-        behavior: 'smooth'
-      })
-    },
-
-    async displayContentWithDelay(content, container) {
-      // 创建新的容器元素
-      const contentDiv = document.createElement('div')
-      contentDiv.className = 'stream-block'
-      container.appendChild(contentDiv)
-
-      // 将 markdown 转换为 HTML
-      const htmlContent = marked(content)
-      const tempDiv = document.createElement('div')
-      tempDiv.innerHTML = htmlContent
-
-      // 遍历每个元素
-      for (const element of tempDiv.children) {
-        const newElement = document.createElement(element.tagName)
-        
-        // 复制元素的类和属性
-        Array.from(element.attributes).forEach(attr => {
-          newElement.setAttribute(attr.name, attr.value)
-        })
-
-        // 根据元素类型添加样式类
-        if (element.tagName.match(/^H[1-6]$/)) {
-          newElement.classList.add('markdown-heading')
-          if (element.tagName === 'H1') {
-            newElement.style.fontSize = '1.4em'
-            newElement.style.borderBottom = '1px solid #4b5563'
-            newElement.style.paddingBottom = '0.5em'
-          } else if (element.tagName === 'H2') {
-            newElement.style.fontSize = '1.2em'
-            newElement.style.marginTop = '1.5em'
-          } else if (element.tagName === 'H3') {
-            newElement.style.fontSize = '1.1em'
-            newElement.style.marginTop = '1.2em'
-          }
-        } else if (element.tagName === 'P') {
-          newElement.classList.add('markdown-paragraph')
-        } else if (element.tagName === 'UL' || element.tagName === 'OL') {
-          newElement.classList.add('markdown-list')
-        }
-
-        contentDiv.appendChild(newElement)
-
-        // 如果是列表，直接添加列表项
-        if (element.tagName === 'UL' || element.tagName === 'OL') {
-          for (const item of element.children) {
-            const listItem = document.createElement('li')
-            listItem.classList.add('markdown-list-item')
-            
-            // 处理特殊标记
-            const text = item.textContent
-            if (text.startsWith('✓')) {
-              listItem.style.color = '#34D399' // 绿色
-              listItem.style.listStyleType = 'none'
-            } else if (text.startsWith('⚠️')) {
-              listItem.style.color = '#FBBF24' // 黄色
-              listItem.style.listStyleType = 'none'
-            } else if (text.startsWith('⭐')) {
-              listItem.style.color = '#60A5FA' // 蓝色
-              listItem.style.listStyleType = 'none'
-            }
-
-            // 直接设置文本内容
-            listItem.textContent = item.textContent
-            newElement.appendChild(listItem)
-          }
-        } else {
-          // 直接设置文本内容
-          newElement.textContent = element.textContent
-        }
-      }
     },
 
     toggleView() {
@@ -487,13 +343,6 @@ export default {
           this.showResult = true
           this.loading = false
           this.showReport = true
-          const reportContent = this.$refs.reportContent
-          reportContent.innerHTML = ''
-
-          // 创建当前段落的容器
-          let currentBlock = document.createElement('div')
-          currentBlock.className = 'stream-block'
-          reportContent.appendChild(currentBlock)
 
           // 创建文本解码器
           const decoder = new TextDecoder()
@@ -521,24 +370,7 @@ export default {
                 try {
                   const data = JSON.parse(line.slice(6))
                   if (data.content) {
-                    // 检查是否需要创建新的块
-                    if (data.content.includes('\n\n') || data.content.match(/^#{1,6}\s/)) {
-                      currentBlock = document.createElement('div')
-                      currentBlock.className = 'stream-block'
-                      reportContent.appendChild(currentBlock)
-                    }
-
-                    // 将内容直接添加到当前块
-                    const textNode = document.createTextNode(data.content)
-                    currentBlock.appendChild(textNode)
-
-                    // 如果是标题，添加样式
-                    if (data.content.match(/^#{1,6}\s/)) {
-                      currentBlock.classList.add('markdown-heading')
-                    }
-
-                    // 滚动到最新内容
-                    currentBlock.scrollIntoView({ behavior: 'smooth', block: 'end' })
+                    this.markdownContent += data.content
                   }
                 } catch (e) {
                   console.error('解析响应数据失败:', e)
@@ -561,94 +393,6 @@ export default {
       } finally {
         this.loading = false
       }
-    },
-
-    async fetchSummaryReport() {
-      this.isProcessing = true
-      try {
-        this.isGeneratingSummary = true
-        const response = await this.$axios.post('/api/analyze-dify-summary', {
-          resume: this.formData.resume,
-          job: this.formData.job,
-          report: this.markdownContent
-        }, {
-          responseType: 'text',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        })
-
-        if (response.status !== 200) {
-          throw new Error(`请求失败: ${response.status} ${response.statusText}`)
-        }
-
-        let content = ''
-        const lines = response.data.split('\n')
-        for (const line of lines) {
-          if (line.trim() && line.startsWith('data: ')) {
-            try {
-              const data = JSON.parse(line.slice(6))
-              if (data.content) {
-                content += data.content
-              }
-            } catch (e) {
-              console.error('解析响应数据失败:', e)
-            }
-          }
-        }
-
-        if (content) {
-          // 保存到 sessionStorage，这样返回时可以恢复
-          sessionStorage.setItem('summaryContent', content)
-          // 跳转到新页面展示总结报告
-          this.$router.push({
-            name: 'summary',
-            params: { 
-              summary: content,
-              isNew: true
-            }
-          })
-        } else {
-          throw new Error('获取总结报告失败：返回内容为空')
-        }
-      } catch (error) {
-        console.error('获取总结报告出错:', error)
-        alert('获取总结报告出错：' + (error.response?.data?.message || error.message))
-      } finally {
-        this.isGeneratingSummary = false
-        this.isProcessing = false
-      }
-    },
-
-    isCompleteBlock(text) {
-      // 检查是否是完整的内容块
-      const lines = text.split('\n');
-      const lastLine = lines[lines.length - 1];
-      
-      // 检查是否是标题行
-      if (lastLine.match(/^#{1,6}\s.*$/)) {
-        return true;
-      }
-      
-      // 检查是否是列表项（包括特殊标记）
-      const listItemPattern = /^[-*+]\s.*$|^\d+\.\s.*$/;
-      if (listItemPattern.test(lastLine)) {
-        // 如果是列表项，确保它是完整的句子
-        return lastLine.trim().endsWith('。') || 
-               lastLine.trim().endsWith('！') || 
-               lastLine.trim().endsWith('？') ||
-               lastLine.trim().endsWith('.') || 
-               lastLine.trim().endsWith('!') || 
-               lastLine.trim().endsWith('?');
-        // return true;
-      }
-      
-      // 检查是否有段落分隔符
-      if (text.endsWith('\n\n')) {
-        return true;
-      }
-      
-      return false;
     }
   }
 }
@@ -1506,6 +1250,327 @@ button:active:not(:disabled) {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* 科技感加载动画 */
+.tech-spinner {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto;
+}
+
+.tech-spinner-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.tech-spinner-circle {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  animation: tech-spin 2s linear infinite;
+}
+
+.tech-spinner-circle:nth-child(1) {
+  border-top-color: #3b82f6;
+  animation-delay: 0s;
+}
+
+.tech-spinner-circle:nth-child(2) {
+  border-right-color: #3b82f6;
+  animation-delay: 0.5s;
+}
+
+.tech-spinner-circle:nth-child(3) {
+  border-bottom-color: #3b82f6;
+  animation-delay: 1s;
+}
+
+.tech-spinner-circle:nth-child(4) {
+  border-left-color: #3b82f6;
+  animation-delay: 1.5s;
+}
+
+.tech-spinner-circle:nth-child(5) {
+  border-color: #3b82f6;
+  border-style: dashed;
+  animation-delay: 2s;
+}
+
+.tech-spinner-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #3b82f6;
+  font-size: 14px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.tech-dots {
+  display: inline-block;
+}
+
+.tech-dots span {
+  display: inline-block;
+  animation: tech-dots 1.4s infinite;
+}
+
+.tech-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.tech-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes tech-spin {
+  0% {
+    transform: rotate(0deg);
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(360deg);
+    opacity: 0.2;
+  }
+}
+
+@keyframes tech-dots {
+  0%, 100% {
+    opacity: 0.2;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-5px);
+  }
+}
+
+/* 添加科技感背景效果 */
+.tech-spinner::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  right: -10px;
+  bottom: -10px;
+  background: linear-gradient(45deg, transparent, rgba(59, 130, 246, 0.1), transparent);
+  border-radius: 50%;
+  animation: tech-glow 2s linear infinite;
+}
+
+@keyframes tech-glow {
+  0% {
+    transform: rotate(0deg);
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: rotate(360deg);
+    opacity: 0.2;
+  }
+}
+
+/* 添加科技感边框动画 */
+.bg-gray-800::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #3b82f6, #60a5fa, #3b82f6);
+  z-index: -1;
+  border-radius: 0.5rem;
+  animation: border-glow 2s linear infinite;
+}
+
+@keyframes border-glow {
+  0% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0.2;
+  }
+}
+
+/* 科技感报告加载动画 */
+.tech-loader {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin: 0 auto;
+}
+
+.tech-loader-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.tech-loader-line {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  animation: tech-loader-spin 3s linear infinite;
+}
+
+.tech-loader-line:nth-child(1) {
+  border-top-color: #3b82f6;
+  animation-delay: 0s;
+}
+
+.tech-loader-line:nth-child(2) {
+  border-right-color: #60a5fa;
+  animation-delay: 0.6s;
+}
+
+.tech-loader-line:nth-child(3) {
+  border-bottom-color: #93c5fd;
+  animation-delay: 1.2s;
+}
+
+.tech-loader-line:nth-child(4) {
+  border-left-color: #bfdbfe;
+  animation-delay: 1.8s;
+}
+
+.tech-loader-line:nth-child(5) {
+  border-color: #dbeafe;
+  border-style: dashed;
+  animation-delay: 2.4s;
+}
+
+.tech-loader-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #3b82f6;
+  font-size: 16px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+}
+
+.tech-loader-dots {
+  position: absolute;
+  top: 60%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #60a5fa;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.tech-loader-dots span {
+  display: inline-block;
+  animation: tech-loader-dots 1.4s infinite;
+}
+
+.tech-loader-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.tech-loader-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes tech-loader-spin {
+  0% {
+    transform: rotate(0deg);
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(360deg);
+    opacity: 0.2;
+  }
+}
+
+@keyframes tech-loader-dots {
+  0%, 100% {
+    opacity: 0.2;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-5px);
+  }
+}
+
+/* 添加科技感背景效果 */
+.tech-loader::before {
+  content: '';
+  position: absolute;
+  top: -15px;
+  left: -15px;
+  right: -15px;
+  bottom: -15px;
+  background: linear-gradient(45deg, transparent, rgba(59, 130, 246, 0.1), transparent);
+  border-radius: 50%;
+  animation: tech-loader-glow 3s linear infinite;
+}
+
+@keyframes tech-loader-glow {
+  0% {
+    transform: rotate(0deg);
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: rotate(360deg);
+    opacity: 0.2;
+  }
+}
+
+/* 添加粒子效果 */
+.tech-loader::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: tech-loader-particles 3s linear infinite;
+}
+
+@keyframes tech-loader-particles {
+  0% {
+    transform: scale(1);
+    opacity: 0.2;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.2;
   }
 }
 </style>
