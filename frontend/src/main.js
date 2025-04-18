@@ -25,7 +25,7 @@ Vue.config.productionTip = false
 
 // 配置 axios
 const axiosInstance = axios.create({
-  baseURL: process.env.VUE_APP_API_BASE_URL || 'http://localhost:8000',
+  baseURL: process.env.VUE_APP_API_BASE_URL || 'https://resume-match-api.bitboy.games',
   timeout: 1200000,
   headers: {
     'Content-Type': 'application/json'

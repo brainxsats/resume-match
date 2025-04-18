@@ -15,10 +15,13 @@ services:
     build: ./frontend
     ports:
       - "3000:80"
+    volumes:
+      - ./output:/app/output
     environment:
-      - API_URL=http://localhost:8000
-      - VUE_APP_API_BASE_URL=http://localhost:8000
-      # - API_URL=http://8.217.75.175:8444
+      # - API_URL=http://localhost:8000
+      # - VUE_APP_API_BASE_URL=http://localhost:8000
+      - API_URL=http://8.217.75.175:8444
+      - VUE_APP_API_BASE_URL=http://8.217.75.175:8444
     depends_on:
       - resume-analyzer-backend
 

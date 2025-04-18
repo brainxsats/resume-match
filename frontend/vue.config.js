@@ -6,7 +6,7 @@ module.exports = defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'https://resume-match-api.bitboy.games',
         changeOrigin: true
       }
     }
